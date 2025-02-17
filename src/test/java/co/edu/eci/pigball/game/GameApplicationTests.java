@@ -5,9 +5,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 class GameApplicationTests {
-
+	
 	@Test
 	void contextLoads() {
 	}
+
+	@Test
+    void mainMethodTest() {
+        GameApplication.main(new String[]{});
+    }
 
 }
