@@ -25,6 +25,7 @@ public class GameController {
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate; // Inject messaging template
+    private static final double FRAME_RATE = 60;
 
     @MessageMapping("/play")
     public void makeAMovement(Movement movement) {
@@ -32,7 +33,7 @@ public class GameController {
         // No need to return anything; state is sent periodically
     }
 
-    @Scheduled(fixedRate = 50)
+    @Scheduled(fixedRate = ((int)(1000/FRAME_RATE)))
     public void broadcastGameState() {
         try {
             GameDTO gameDTO = game.getGameDTO();

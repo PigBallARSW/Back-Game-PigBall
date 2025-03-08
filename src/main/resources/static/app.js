@@ -1,5 +1,5 @@
 const stompClient = new StompJs.Client({
-    brokerURL: 'ws://localhost:8080/pigball'
+    brokerURL: 'ws://44.202.58.181:8080/pigball'
 });
 
 const movementState = {
@@ -51,6 +51,7 @@ document.addEventListener("keyup", (e) => {
 
 
 function connect() {
+    const FRAME_RATE = 60;
     let playerName = $("#my_name").val(); // Get the player's name from input
 
     if (!playerName) {
@@ -105,7 +106,7 @@ function connect() {
                     })
                 });
             }
-        }, 50);
+        }, 1000/FRAME_RATE);
     };
 
     stompClient.activate();
