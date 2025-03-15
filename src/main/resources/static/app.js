@@ -1,5 +1,5 @@
 const stompClient = new StompJs.Client({
-    brokerURL: 'ws://44.202.58.181:8080/pigball'
+    brokerURL: 'ws://localhost:8080/pigball'
 });
 
 const movementState = {
