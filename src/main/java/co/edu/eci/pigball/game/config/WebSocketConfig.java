@@ -26,7 +26,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/pigball")
-            .setAllowedOrigins("http://localhost:3000", "http://frontendeci.duckdns.org");
+            .setAllowedOrigins("http://localhost:3000", "http://frontendeci.duckdns.org:3000", "https://localhost:3000", "https://frontendeci.duckdns.org:3000");
     }
 
     @Override

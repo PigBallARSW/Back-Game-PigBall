@@ -3,16 +3,15 @@ package co.edu.eci.pigball.game.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 
-import co.edu.eci.pigball.game.model.Game;
+import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.model.Movement;
 import co.edu.eci.pigball.game.model.Player;
-import co.edu.eci.pigball.game.model.DTO.GameDTO;
+import co.edu.eci.pigball.game.service.GameService;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -21,39 +20,26 @@ import lombok.Setter;
 @Setter
 public class GameController {
     @Autowired
-    private Game game;
+    private GameService gameService;
 
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate; // Inject messaging template
-    private static final double FRAME_RATE = 60;
-
-    @MessageMapping("/play")
-    public void makeAMovement(Movement movement) {
-        game.makeAMove(movement.getPlayer(), movement.getDx(), movement.getDy());
-        // No need to return anything; state is sent periodically
-    }
-
-    @Scheduled(fixedRate = ((int)(1000/FRAME_RATE)))
-    public void broadcastGameState() {
+    @MessageMapping("/join/{game_id}")
+    @SendTo("/topic/players/{game_id}")
+    public List<Player> handleNewPlayer(@DestinationVariable("game_id") Long gameId, Player player) {
         try {
-            GameDTO gameDTO = game.getGameDTO();
-            if (gameDTO == null) {
-                return; // Prevent sending null messages
-            }
-            messagingTemplate.convertAndSend("/topic/play", gameDTO);
-        } catch (Exception e) {
+            return gameService.addPlayerToGame(gameId, player);
+        } catch (GameException e) {
+            return null;
         }
     }
 
-    @MessageMapping("/join")
-    @SendTo("/topic/playerJoined")
-    public List<Player> handleNewPlayer(Player player) {
-        System.out.println("New player joined: " + player.getName());
+    @MessageMapping("/leave/{game_id}")
+    @SendTo("/topic/players/{game_id}")
+    public List<Player> handlePlayerExit(@DestinationVariable("game_id") Long gameId, Player player) {
+        return gameService.removePlayerFromGame(gameId, player);
+    }
 
-        // Add player to the game
-        game.addPlayer(player.getName(), player);
-
-        // Return the updated list of all players in the game
-        return game.getAllPlayers();
+    @MessageMapping("/play/{game_id}")
+    public void makeAMovement(@DestinationVariable("game_id") Long gameId, Movement movement) {
+        gameService.makeMoveInGame(gameId, movement);
     }
 }

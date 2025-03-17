@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import lombok.Getter;
 
 @Getter
-public class Player implements Runnable {
+public class Player {
     private String name;
     private AtomicInteger x;
     private AtomicInteger y;
@@ -38,10 +38,5 @@ public class Player implements Runnable {
 
     public int getY() {
         return y.get();
-    }
-
-    @Override
-    public void run() {
-        
     }
 }
