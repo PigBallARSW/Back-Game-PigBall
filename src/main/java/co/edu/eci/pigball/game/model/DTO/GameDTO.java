@@ -14,6 +14,8 @@ import lombok.Setter;
 @AllArgsConstructor
 public class GameDTO {
 
+    private Long id;
+    private String name;
     private List<Player> players;
     
     public GameDTO(Collection<Player> players) {

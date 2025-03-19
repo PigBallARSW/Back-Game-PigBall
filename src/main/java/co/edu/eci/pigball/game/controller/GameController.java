@@ -35,11 +35,22 @@ public class GameController {
     @MessageMapping("/leave/{game_id}")
     @SendTo("/topic/players/{game_id}")
     public List<Player> handlePlayerExit(@DestinationVariable("game_id") Long gameId, Player player) {
-        return gameService.removePlayerFromGame(gameId, player);
+        try {
+            return gameService.removePlayerFromGame(gameId, player);
+        } catch (GameException e) {
+            try {
+                return gameService.getPlayersFromGame(gameId);
+            } catch (GameException e1) {
+                return null;
+            }
+        }
     }
 
     @MessageMapping("/play/{game_id}")
     public void makeAMovement(@DestinationVariable("game_id") Long gameId, Movement movement) {
-        gameService.makeMoveInGame(gameId, movement);
+        try {
+            gameService.makeMoveInGame(gameId, movement);
+        } catch (GameException e) {
+        }
     }
 }

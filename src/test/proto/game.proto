@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+option java_package = "proto";
+
+/* The Lobby service definition */
+service LobbyService {
+  /* Creates a new game */
+  rpc CreateGame (CreateGameRequest) returns (GameResponse);
+  
+  /* Retrieves a game by ID */
+  rpc GetGame (GetGameRequest) returns (GameResponse);
+  
+  /* Retrieves all games */
+  rpc GetAllGames (Empty) returns (GameListResponse);
+  
+  /* Removes a game by ID */
+  rpc RemoveGame (RemoveGameRequest) returns (Empty);
+}
+
+/* Request message for creating a game */
+message CreateGameRequest {
+  string game_name = 1;
+}
+
+/* Request message for retrieving a game */
+message GetGameRequest {
+  int64 game_id = 1;
+}
+
+/* Request message for removing a game */
+message RemoveGameRequest {
+  int64 game_id = 1;
+}
+
+/* Response message containing game details */
+message GameResponse {
+  int64 game_id = 1;
+  string game_name = 2;
+}
+
+/* Response message containing a list of games */
+message GameListResponse {
+  repeated GameResponse games = 1;
+}
+
+/* Empty message for endpoints that do not require parameters */
+message Empty {}

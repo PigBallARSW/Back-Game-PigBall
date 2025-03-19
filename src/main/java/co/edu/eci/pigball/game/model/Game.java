@@ -52,6 +52,14 @@ public class Game implements Runnable {
     }
 
     public void addPlayer(Player player) {
+        Player playerInGame = players.get(player.getName());
+        if (playerInGame != null) {
+            player.setX(playerInGame.getX());
+            player.setY(playerInGame.getY());
+        } else {
+            player.setX((int) (Math.random() * 100));
+            player.setY((int) (Math.random() * 100));
+        }
         players.put(player.getName(), player);
     }
 

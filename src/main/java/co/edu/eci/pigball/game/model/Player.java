@@ -20,7 +20,7 @@ public class Player {
         this.x.set(x);
     }
 
-    public void getY(int y) {
+    public void setY(int y) {
         this.y.set(y);
     }
 

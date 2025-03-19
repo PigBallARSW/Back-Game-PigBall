@@ -31,6 +31,7 @@ public class GameService {
         Thread gameThread = new Thread(game);
         gameThread.start();
         games.put(game.getGameId(), game);
+        System.out.println("Game " + game.getGameId() + " created");
         return GameDTO.toDTO(game);
     }
 
@@ -38,14 +39,26 @@ public class GameService {
         if (gameId == null) {
             throw new GameException(GameException.NOT_EMPTY_ID);
         }
-        return GameDTO.toDTO(games.get(gameId));
+        Game game = games.get(gameId);
+        if (game == null) {
+            throw new GameException(GameException.GAME_NOT_FOUND);
+        }
+        return GameDTO.toDTO(game);
     }
 
     public Collection<GameDTO> getAllGames() {
         return GameDTO.toDTO(games.values());
     }
 
-    public void removeGame(Long gameId) {
+    public void removeGame(Long gameId) throws GameException {
+        if (gameId == null) {
+            throw new GameException(GameException.NOT_EMPTY_ID);
+        }
+        Game game = games.get(gameId);
+        if (game == null) {
+            throw new GameException(GameException.GAME_NOT_FOUND);
+        }
+        System.out.println("Game " + game.getGameId() + " removed");
         games.remove(gameId);
     }
 
@@ -59,23 +72,31 @@ public class GameService {
         return game.getAllPlayers();
     }
 
-    public List<Player> removePlayerFromGame(Long gameId, Player player) {
+    public List<Player> removePlayerFromGame(Long gameId, Player player) throws GameException {
         Game game = games.get(gameId);
         if (game == null) {
-            return null;
+            throw new GameException(GameException.GAME_NOT_FOUND);
         }
         System.out.println("Player " + player.getName() + " left game " + game.getGameId());
         game.removePlayer(player);
         return game.getAllPlayers();
     }
 
-    public void makeMoveInGame(Long gameId, Movement movement) {
+    public List<Player> getPlayersFromGame(Long gameId) throws GameException {
         Game game = games.get(gameId);
         if (game == null) {
-           return;
+            throw new GameException(GameException.GAME_NOT_FOUND);
+        }
+        return game.getAllPlayers();
+    }
+
+    public void makeMoveInGame(Long gameId, Movement movement) throws GameException {
+        Game game = games.get(gameId);
+        if (game == null) {
+           throw new GameException(GameException.GAME_NOT_FOUND);
         }
         if (movement.getPlayer() == null) {
-            return;
+            throw new GameException(GameException.NOT_EMPTY_PLAYER);
         }
         game.makeAMove(movement.getPlayer(), movement.getDx(), movement.getDy());
     }

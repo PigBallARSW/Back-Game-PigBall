@@ -6,6 +6,7 @@ public class GameException extends Exception {
 
     public static final String NOT_EMPTY_ID = "Game id cannot be empty";
     public static final String NOT_EMPTY_NAME = "Game name cannot be empty";
+    public static final String NOT_EMPTY_PLAYER = "Player name cannot be null";
     public static final String GAME_NOT_NULL = "Game name cannot be null";
     public static final String GAME_NOT_FOUND = "Game not found";
     public static final String PLAYER_NOT_FOUND = "Player not found";
@@ -14,7 +15,9 @@ public class GameException extends Exception {
     public static final String GAME_NOT_STARTED = "Game not started";
     public static final String GAME_ALREADY_STARTED = "Game already started";
     public static final String GAME_ALREADY_FINISHED = "Game already finished";
-
+    public static final String INVALID_MOVEMENT = "Invalid movement";
+    public static final String INVALID_PLAYER = "Invalid player";
+    public static final String INVALID_GAME = "Invalid game";
 
 
     public GameException(String message) {
