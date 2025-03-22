@@ -18,13 +18,15 @@ public class GameDTO {
     private String name;
     private List<Player> players;
     
-    public GameDTO(Collection<Player> players) {
-        this.players = List.copyOf(players);    
+    public GameDTO(Collection<Player> players,Long id, String name) {
+        this.players = List.copyOf(players);
+        this.id = id;
+        this.name = name;
     }
 
     public static GameDTO toDTO(Game game) {
         Collection<Player> players = game.getPlayers().values();
-        return new GameDTO(players);
+        return new GameDTO(players, game.getGameId(), game.getGameName());
     }
 
     public static Collection<GameDTO> toDTO(Collection<Game> games) {
