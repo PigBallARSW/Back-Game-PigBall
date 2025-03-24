@@ -24,7 +24,7 @@ public class GameController {
 
     @MessageMapping("/join/{game_id}")
     @SendTo("/topic/players/{game_id}")
-    public List<Player> handleNewPlayer(@DestinationVariable("game_id") Long gameId, Player player) {
+    public List<Player> handleNewPlayer(@DestinationVariable("game_id") String gameId, Player player) {
         try {
             return gameService.addPlayerToGame(gameId, player);
         } catch (GameException e) {
@@ -34,7 +34,7 @@ public class GameController {
 
     @MessageMapping("/leave/{game_id}")
     @SendTo("/topic/players/{game_id}")
-    public List<Player> handlePlayerExit(@DestinationVariable("game_id") Long gameId, Player player) {
+    public List<Player> handlePlayerExit(@DestinationVariable("game_id") String gameId, Player player) {
         try {
             return gameService.removePlayerFromGame(gameId, player);
         } catch (GameException e) {
@@ -47,7 +47,7 @@ public class GameController {
     }
 
     @MessageMapping("/play/{game_id}")
-    public void makeAMovement(@DestinationVariable("game_id") Long gameId, Movement movement) {
+    public void makeAMovement(@DestinationVariable("game_id") String gameId, Movement movement) {
         try {
             gameService.makeMoveInGame(gameId, movement);
         } catch (GameException e) {

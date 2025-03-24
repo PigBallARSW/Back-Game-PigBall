@@ -1,10 +1,11 @@
 package co.edu.eci.pigball.game.model;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
@@ -14,19 +15,28 @@ import lombok.Getter;
 @Getter
 public class Game implements Runnable {
 
-    private static AtomicLong identifier = new AtomicLong(0);
     private static final double FRAME_RATE = 60;
 
     private SimpMessagingTemplate messagingTemplate;
-    private Long gameId;
+    private String gameId;
     private String gameName;
+    private String creatorName;
+    private int maxPlayers;
+    private GameStatus status;
+    private boolean privateGame;
+    private Instant creationTime;
     private ConcurrentHashMap<String, Player> players;
 
     private static final int velocity = 5;
 
-    public Game(String gameName, SimpMessagingTemplate messagingTemplate) {
-        this.gameId = identifier.getAndIncrement();
+    public Game(String gameName, String creatorName, int maxPlayers, boolean privateGame, SimpMessagingTemplate messagingTemplate) {
+        this.gameId = UUID.randomUUID().toString(); // Genera un UUID único
         this.gameName = gameName;
+        this.creatorName = creatorName;
+        this.maxPlayers = maxPlayers;
+        this.status = GameStatus.WAITING_FOR_PLAYERS;
+        this.privateGame = privateGame;
+        this.creationTime = Instant.now();
         this.messagingTemplate = messagingTemplate;
         this.players = new ConcurrentHashMap<>();
     }

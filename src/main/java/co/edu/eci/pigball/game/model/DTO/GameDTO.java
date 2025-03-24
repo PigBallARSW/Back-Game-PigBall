@@ -1,9 +1,11 @@
 package co.edu.eci.pigball.game.model.DTO;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 
 import co.edu.eci.pigball.game.model.Game;
+import co.edu.eci.pigball.game.model.GameStatus;
 import co.edu.eci.pigball.game.model.Player;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,17 +16,28 @@ import lombok.Setter;
 @AllArgsConstructor
 public class GameDTO {
 
-    private Long id;
-    private String name;
+    private String id;
+    private String gameName;
+    private String creatorName;
+    private int maxPlayers;
+    private GameStatus status;
+    private boolean privateGame;
+    private Instant creationTime;
     private List<Player> players;
     
-    public GameDTO(Collection<Player> players) {
-        this.players = List.copyOf(players);    
+    public GameDTO(Game game) {
+        this.id = game.getGameId();
+        this.gameName = game.getGameName();
+        this.creatorName = game.getCreatorName();
+        this.maxPlayers = game.getMaxPlayers();
+        this.status = game.getStatus();
+        this.privateGame = game.isPrivateGame();
+        this.creationTime = game.getCreationTime();
+        this.players = List.copyOf(game.getPlayers().values());
     }
 
     public static GameDTO toDTO(Game game) {
-        Collection<Player> players = game.getPlayers().values();
-        return new GameDTO(players);
+        return new GameDTO(game);
     }
 
     public static Collection<GameDTO> toDTO(Collection<Game> games) {
