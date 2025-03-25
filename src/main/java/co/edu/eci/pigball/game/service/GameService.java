@@ -82,6 +82,7 @@ public class GameService {
             throw new GameException(GameException.GAME_NOT_FOUND);
         }
         System.out.println("Player " + player.getName() + " joined to game " + game.getGameId());
+        player.setGame(game);
         game.addPlayer(player);
         return game.getAllPlayers();
     }

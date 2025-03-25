@@ -12,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.model.Movement;
 import co.edu.eci.pigball.game.model.Player;
+import co.edu.eci.pigball.game.model.DTO.PlayerDTO;
 import co.edu.eci.pigball.game.service.GameService;
 import lombok.Getter;
 import lombok.Setter;
@@ -29,14 +30,14 @@ public class GameController {
 
     @MessageMapping("/join/{game_id}")
     @SendTo("/topic/players/{game_id}")
-    public List<Player> handleNewPlayer(@DestinationVariable("game_id") String gameId, Player player,
+    public List<PlayerDTO> handleNewPlayer(@DestinationVariable("game_id") String gameId, Player player,
             SimpMessageHeaderAccessor headerAccessor) {
         try {
             String sessionId = headerAccessor.getSessionId();
             player.setSessionId(sessionId);
             List<Player> players = gameService.addPlayerToGame(gameId, player);
             webSocketEventListener.setANewConnection(sessionId, gameId, player.getName());
-            return players;
+            return (List<PlayerDTO>) PlayerDTO.toDTO(players);
         } catch (GameException e) {
             return null;
             
@@ -45,12 +46,14 @@ public class GameController {
 
     @MessageMapping("/leave/{game_id}")
     @SendTo("/topic/players/{game_id}")
-    public List<Player> handlePlayerExit(@DestinationVariable("game_id") String gameId, Player player) {
+    public List<PlayerDTO> handlePlayerExit(@DestinationVariable("game_id") String gameId, Player player) {
         try {
-            return gameService.removePlayerFromGame(gameId, player);
+            List<Player> players = gameService.removePlayerFromGame(gameId, player);
+            return (List<PlayerDTO>) PlayerDTO.toDTO(players);
         } catch (GameException e) {
             try {
-                return gameService.getPlayersFromGame(gameId);
+                List<Player> players = gameService.getPlayersFromGame(gameId);
+                return (List<PlayerDTO>) PlayerDTO.toDTO(players);
             } catch (GameException e1) {
                 return null;
             }
