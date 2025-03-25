@@ -8,11 +8,13 @@ import co.edu.eci.pigball.game.model.Game;
 import co.edu.eci.pigball.game.model.GameStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
 @AllArgsConstructor
+@NoArgsConstructor
 public class GameDTO {
 
     private String id;

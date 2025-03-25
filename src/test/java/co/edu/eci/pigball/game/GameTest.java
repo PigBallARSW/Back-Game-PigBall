@@ -17,9 +17,9 @@ public class GameTest {
 
     @BeforeEach
     void setUp() {
-        game = new Game();
-        player1 = new Player("player1", 0, 0);
-        player2 = new Player("player2", 10, 10);
+        game = new Game("Juego1", "Creador1", 4, false, null);
+        player1 = new Player("player1", null, 0, 0, game);
+        player2 = new Player("player2", null, 10, 10, game);
     }
 
     @Test
