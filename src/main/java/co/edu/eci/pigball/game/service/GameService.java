@@ -30,7 +30,11 @@ public class GameService {
     }
 
     
-    public GameDTO createGame(String gameName, String creatorName, int maxPlayers , boolean privateGame) throws GameException {
+    public GameDTO createGame(GameDTO gameDTO) throws GameException {
+        String gameName = gameDTO.getGameName();
+        String creatorName = gameDTO.getCreatorName();
+        int maxPlayers = gameDTO.getMaxPlayers();
+        boolean privateGame = gameDTO.isPrivateGame();
         if (gameName == null || gameName.trim().isEmpty()) {
             throw new GameException(GameException.NOT_EMPTY_NAME);
         }
@@ -82,6 +86,7 @@ public class GameService {
             throw new GameException(GameException.GAME_NOT_FOUND);
         }
         System.out.println("Player " + player.getName() + " joined to game " + game.getGameId());
+        player.setGame(game);
         game.addPlayer(player);
         return game.getAllPlayers();
     }

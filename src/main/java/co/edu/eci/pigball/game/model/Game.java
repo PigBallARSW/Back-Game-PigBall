@@ -87,9 +87,7 @@ public class Game implements Runnable {
         players.compute(player.getName(), (key, existingPlayer) -> {
             if (existingPlayer != null) {
                 // Conservar la posición existente
-                player.setX(existingPlayer.getX());
-                player.setY(existingPlayer.getY());
-                
+                player.setPosition(existingPlayer.getX(), existingPlayer.getY());
                 // Si el nuevo jugador tiene equipo nulo, se asigna el equipo del existente.
                 if (player.getTeam() == null) {
                     player.setTeam(existingPlayer.getTeam());
@@ -107,9 +105,7 @@ public class Game implements Runnable {
                 }
             } else {
                 // Jugador nuevo: asignar posiciones aleatorias.
-                player.setX((int) (Math.random() * borderX));
-                player.setY((int) (Math.random() * borderY));
-                
+                player.setPosition((int) (Math.random() * (borderX-20))+20, (int) (Math.random() * (borderY-20))+20);
                 // Si el jugador no tiene equipo asignado, se le asigna el equipo según el balance.
                 if (player.getTeam() == null) {
                     if (teams.getFirst().getPlayers() < teams.getSecond().getPlayers()) {
@@ -145,15 +141,13 @@ public class Game implements Runnable {
         for (Player player : players.values()) {
             if (player.getTeam() == 0) {
                 int x = ubicatedPlayersTeamOne % 2 == 0 ? 5 : 0;
-                int y = (((borderY-10) / (maxPlayers / 2)) * ubicatedPlayersTeamOne) + 5;
-                player.setX(x);
-                player.setY(y);
+                int y = (((borderY-40) / (maxPlayers / 2)) * ubicatedPlayersTeamOne) + 5;
+                player.setPosition(x, y);
                 ubicatedPlayersTeamOne++;
             } else {
-                int x = ubicatedPlayersTeamTwo % 2 == 0 ? borderX - 10 : borderX - 5;
-                int y = (((borderY-10) / (maxPlayers / 2)) * ubicatedPlayersTeamTwo) + 5;
-                player.setX(x);
-                player.setY(y);
+                int x = ubicatedPlayersTeamTwo % 2 == 0 ? borderX - 40 : borderX - 5;
+                int y = (((borderY-40) / (maxPlayers / 2)) * ubicatedPlayersTeamTwo) + 5;
+                player.setPosition(x, y);
                 ubicatedPlayersTeamTwo++;
             }
         }
@@ -186,8 +180,7 @@ public class Game implements Runnable {
         // Uso de Delta Time
         double dt = 100.0 / FRAME_RATE; // Delta Time basado en el framerate
         double adjustedVelocity = velocity * dt;
-        player.moveInX((int) (fdx * adjustedVelocity));
-        player.moveInY((int) (fdy * adjustedVelocity));
+        player.move((int) (fdx * adjustedVelocity), (int) (fdy * adjustedVelocity), new ArrayList<>(players.values()));
     }
     
 

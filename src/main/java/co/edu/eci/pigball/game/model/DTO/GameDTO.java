@@ -6,7 +6,6 @@ import java.util.List;
 
 import co.edu.eci.pigball.game.model.Game;
 import co.edu.eci.pigball.game.model.GameStatus;
-import co.edu.eci.pigball.game.model.Player;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,13 +18,13 @@ public class GameDTO {
     private String id;
     private String gameName;
     private String creatorName;
-    private int maxPlayers;
+    private Integer maxPlayers;
     private GameStatus status;
-    private boolean privateGame;
+    private Boolean privateGame;
     private Instant creationTime;
     private int borderX;
     private int borderY;
-    private List<Player> players;
+    private List<PlayerDTO> players;
     
     public GameDTO(Game game) {
         this.id = game.getGameId();
@@ -37,7 +36,18 @@ public class GameDTO {
         this.creationTime = game.getCreationTime();
         this.borderX = game.getBorderX();
         this.borderY = game.getBorderY();
-        this.players = List.copyOf(game.getPlayers().values());
+        Collection<PlayerDTO> playersDTO = PlayerDTO.toDTO(game.getPlayers().values());
+        this.players = (List<PlayerDTO>) playersDTO;
+    }
+
+    public int getMaxPlayers() {
+        if(maxPlayers==null) return 4;
+        return maxPlayers;
+    }
+
+    public boolean isPrivateGame() {
+        if(privateGame==null) return false;
+        return privateGame;
     }
 
     public static GameDTO toDTO(Game game) {
