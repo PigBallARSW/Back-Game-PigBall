@@ -23,6 +23,8 @@ public class GameDTO {
     private GameStatus status;
     private boolean privateGame;
     private Instant creationTime;
+    private int borderX;
+    private int borderY;
     private List<Player> players;
     
     public GameDTO(Game game) {
@@ -33,6 +35,8 @@ public class GameDTO {
         this.status = game.getStatus();
         this.privateGame = game.isPrivateGame();
         this.creationTime = game.getCreationTime();
+        this.borderX = game.getBorderX();
+        this.borderY = game.getBorderY();
         this.players = List.copyOf(game.getPlayers().values());
     }
 

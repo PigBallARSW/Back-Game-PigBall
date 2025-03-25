@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -17,11 +16,20 @@ import co.edu.eci.pigball.game.model.DTO.GameDTO;
 @Service
 public class GameService {
 
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate; // Inject messaging template
+    private final SimpMessagingTemplate messagingTemplate; // Inject messaging template
+    private final Map<String, Game> games;
+    public GameService(SimpMessagingTemplate messagingTemplate) {
+        this.messagingTemplate = messagingTemplate;
+        this.games = new ConcurrentHashMap<>();
+        Game game = new Game("Game 1", "Creator 1", 4, false, messagingTemplate);
+        game.setIdForTest("1");
+        games.put(game.getGameId(), game);
+        Thread gameThread = new Thread(game);
+        gameThread.start();
+        System.out.println("Game " + game.getGameId() + " created");
+    }
 
-    private final Map<String, Game> games = new ConcurrentHashMap<>();
-
+    
     public GameDTO createGame(String gameName, String creatorName, int maxPlayers , boolean privateGame) throws GameException {
         if (gameName == null || gameName.trim().isEmpty()) {
             throw new GameException(GameException.NOT_EMPTY_NAME);
@@ -88,12 +96,30 @@ public class GameService {
         return game.getAllPlayers();
     }
 
+    public List<Player> removePlayerFromGame(String gameId, String playerName) throws GameException {
+        Game game = games.get(gameId);
+        if (game == null) {
+            throw new GameException(GameException.GAME_NOT_FOUND);
+        }
+        System.out.println("Player " + playerName + " left game " + game.getGameId());
+        game.removePlayer(playerName);
+        return game.getAllPlayers();
+    }
+
     public List<Player> getPlayersFromGame(String gameId) throws GameException {
         Game game = games.get(gameId);
         if (game == null) {
             throw new GameException(GameException.GAME_NOT_FOUND);
         }
         return game.getAllPlayers();
+    }
+
+    public void startGame(String gameId) throws GameException {
+        Game game = games.get(gameId);
+        if (game == null) {
+            throw new GameException(GameException.GAME_NOT_FOUND);
+        }
+        game.startGame();
     }
 
     public void makeMoveInGame(String gameId, Movement movement) throws GameException {
