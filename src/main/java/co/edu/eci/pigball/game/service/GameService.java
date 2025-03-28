@@ -119,12 +119,12 @@ public class GameService {
         return game.getAllPlayers();
     }
 
-    public void startGame(String gameId) throws GameException {
+    public GameDTO startGame(String gameId) throws GameException {
         Game game = games.get(gameId);
         if (game == null) {
             throw new GameException(GameException.GAME_NOT_FOUND);
         }
-        game.startGame();
+        return game.startGame();
     }
 
     public void makeMoveInGame(String gameId, Movement movement) throws GameException {

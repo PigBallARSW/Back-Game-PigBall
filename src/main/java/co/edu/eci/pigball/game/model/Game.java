@@ -134,7 +134,7 @@ public class Game implements Runnable {
         return new ArrayList<>(players.values());
     }
 
-    public void startGame() {
+    public GameDTO startGame() {
         status = GameStatus.STARTING;
         int ubicatedPlayersTeamOne = 0;
         int ubicatedPlayersTeamTwo = 0;
@@ -158,6 +158,7 @@ public class Game implements Runnable {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        return GameDTO.toDTO(this);
     }
 
     public void makeAMove(String name, int dx, int dy) {

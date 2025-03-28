@@ -13,6 +13,7 @@ import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.model.Movement;
 import co.edu.eci.pigball.game.model.Player;
 import co.edu.eci.pigball.game.model.DTO.PlayerDTO;
+import co.edu.eci.pigball.game.model.DTO.GameDTO;
 import co.edu.eci.pigball.game.service.GameService;
 import lombok.Getter;
 import lombok.Setter;
@@ -61,10 +62,12 @@ public class GameController {
     }
 
     @MessageMapping("/start/{game_id}")
-    public void startGame(@DestinationVariable("game_id") String gameId) {
+    @SendTo("/topic/started/{game_id}")
+    public GameDTO startGame(@DestinationVariable("game_id") String gameId) {
         try {
-            gameService.startGame(gameId);
+            return gameService.startGame(gameId);
         } catch (GameException e) {
+            return null;
         }
     }
 
