@@ -7,8 +7,10 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.model.Game;
 import co.edu.eci.pigball.game.model.Player;
+import co.edu.eci.pigball.game.model.DTO.GameDTO;
 
 public class GameTest {
     private Game game;
@@ -24,17 +26,25 @@ public class GameTest {
 
     @Test
     void testAddPlayer() {
-        game.addPlayer("player1", player1);
+        try {
+            game.addPlayer(player1);
+        } catch (GameException e) {
+            fail("Exception should not be thrown when adding a player: " + e.getMessage());
+        }
         assertEquals(1, game.getAllPlayers().size());
         assertTrue(game.getAllPlayers().contains(player1));
-        player1.setX(20);
+        player1.setPosition(20,20);
         assertEquals(20, player1.getX());
     }
 
     @Test
     void testGetAllPlayers() {
-        game.addPlayer("player1", player1);
-        game.addPlayer("player2", player2);
+        try {
+            game.addPlayer(player1);
+            game.addPlayer(player2);
+        } catch (GameException e) {
+            fail("Exception should not be thrown when adding players: " + e.getMessage());
+        }
         List<Player> players = game.getAllPlayers();
         assertEquals(2, players.size());
         assertTrue(players.contains(player1));
@@ -43,16 +53,25 @@ public class GameTest {
 
     @Test
     void testStartGame() {
-        game.addPlayer("player1", player1);
-        game.addPlayer("player2", player2);
+        try {
+            game.addPlayer(player1);
+            game.addPlayer(player2);
+        } catch (GameException e) {
+            fail("Exception should not be thrown when adding players: " + e.getMessage());
+        }
         game.startGame();
-        assertNotNull(game.getGameDTO());
-        assertEquals(2, game.getGameDTO().getPlayers().size());
+        assertNotNull(GameDTO.toDTO(game));
+        assertEquals(2, GameDTO.toDTO(game).getPlayers().size());
     }
 
     @Test
     void testMakeAMove() {
-        game.addPlayer("player1", player1);
+        try {
+            game.addPlayer(player1);
+            game.startGame();
+        } catch (GameException e) {
+            fail("Exception should not be thrown when adding players or starting game: " + e.getMessage());
+        }
         game.makeAMove("player1", 2, 3);
         assertEquals(10, player1.getX()); // 2 * 5
         assertEquals(15, player1.getY()); // 3 * 5
@@ -69,20 +88,8 @@ public class GameTest {
 
     @Test
     void testPlayerMovement() {
-        player1.moveInX(5);
-        player1.moveInY(-5);
+        player1.move(5, -5);
         assertEquals(5, player1.getX());
         assertEquals(-5, player1.getY());
-    }
-
-    @Test
-    void testPlayerThreadExecution() {
-        Thread thread = new Thread(player1);
-        thread.start();
-        try {
-            thread.join(); // Esperar a que el hilo termine
-        } catch (InterruptedException e) {
-            fail("Thread execution interrupted");
-        }
     }
 }
