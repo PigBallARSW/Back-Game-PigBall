@@ -1,4 +1,4 @@
-package co.edu.eci.pigball.game.model.temp_change;
+package co.edu.eci.pigball.game.model.dto;
 
 
 import java.util.Collection;

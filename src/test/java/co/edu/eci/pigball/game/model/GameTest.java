@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.model.Game;
 import co.edu.eci.pigball.game.model.Player;
-import co.edu.eci.pigball.game.model.temp_change.GameDTO;
+import co.edu.eci.pigball.game.model.dto.GameDTO;
 
 public class GameTest {
     private Game game;
