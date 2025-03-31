@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import co.edu.eci.pigball.game.java.Pair;
-import co.edu.eci.pigball.game.model.dto.GameDTO;
+import co.edu.eci.pigball.game.model.temp_change.GameDTO;
 import lombok.Getter;
 
 @Getter

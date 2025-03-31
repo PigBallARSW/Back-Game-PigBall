@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import co.edu.eci.pigball.game.exception.GameException;
-import co.edu.eci.pigball.game.model.dto.GameDTO;
+import co.edu.eci.pigball.game.model.temp_change.GameDTO;
 import co.edu.eci.pigball.game.service.GameService;
 
 @RestController

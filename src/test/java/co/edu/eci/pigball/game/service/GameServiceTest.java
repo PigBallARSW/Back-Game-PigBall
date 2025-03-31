@@ -17,7 +17,7 @@ import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.model.Game;
 import co.edu.eci.pigball.game.model.Movement;
 import co.edu.eci.pigball.game.model.Player;
-import co.edu.eci.pigball.game.model.dto.GameDTO;
+import co.edu.eci.pigball.game.model.temp_change.GameDTO;
 
 @ExtendWith(MockitoExtension.class)
 public class GameServiceTest {

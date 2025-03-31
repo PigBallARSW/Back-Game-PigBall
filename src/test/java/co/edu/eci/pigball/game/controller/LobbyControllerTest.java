@@ -16,7 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import co.edu.eci.pigball.game.exception.GameException;
-import co.edu.eci.pigball.game.model.dto.GameDTO;
+import co.edu.eci.pigball.game.model.temp_change.GameDTO;
 import co.edu.eci.pigball.game.service.GameService;
 
 @ExtendWith(MockitoExtension.class)
