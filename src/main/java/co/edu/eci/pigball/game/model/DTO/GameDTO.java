@@ -1,4 +1,4 @@
-package co.edu.eci.pigball.game.model.DTO;
+package co.edu.eci.pigball.game.model.dto;
 
 import java.time.Instant;
 import java.util.Collection;

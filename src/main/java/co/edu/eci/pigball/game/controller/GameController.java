@@ -1,7 +1,10 @@
 package co.edu.eci.pigball.game.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -12,8 +15,8 @@ import org.springframework.stereotype.Controller;
 import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.model.Movement;
 import co.edu.eci.pigball.game.model.Player;
-import co.edu.eci.pigball.game.model.DTO.PlayerDTO;
-import co.edu.eci.pigball.game.model.DTO.GameDTO;
+import co.edu.eci.pigball.game.model.dto.GameDTO;
+import co.edu.eci.pigball.game.model.dto.PlayerDTO;
 import co.edu.eci.pigball.game.service.GameService;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,10 +27,16 @@ import co.edu.eci.pigball.game.config.WebSocketEventListener;
 @Getter
 @Setter
 public class GameController {
-    @Autowired
-    private GameService gameService;
-    @Autowired
-    private WebSocketEventListener webSocketEventListener;
+
+    private static final Logger logger = LoggerFactory.getLogger(GameController.class);
+    
+    private final GameService gameService;
+    private final WebSocketEventListener webSocketEventListener;
+
+    public GameController(GameService gameService, WebSocketEventListener webSocketEventListener) {
+        this.gameService = gameService;
+        this.webSocketEventListener = webSocketEventListener;
+    }
 
     @MessageMapping("/join/{game_id}")
     @SendTo("/topic/players/{game_id}")
@@ -56,7 +65,7 @@ public class GameController {
                 List<Player> players = gameService.getPlayersFromGame(gameId);
                 return (List<PlayerDTO>) PlayerDTO.toDTO(players);
             } catch (GameException e1) {
-                return null;
+                return new ArrayList<>();
             }
         }
     }
@@ -76,6 +85,7 @@ public class GameController {
         try {
             gameService.makeMoveInGame(gameId, movement);
         } catch (GameException e) {
+            logger.error("Error al hacer un movimiento en el juego", e);
         }
     }
 }

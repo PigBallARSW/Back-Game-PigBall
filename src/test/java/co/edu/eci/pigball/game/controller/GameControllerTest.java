@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,9 +18,9 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.model.Movement;
 import co.edu.eci.pigball.game.model.Player;
+import co.edu.eci.pigball.game.model.dto.GameDTO;
+import co.edu.eci.pigball.game.model.dto.PlayerDTO;
 import co.edu.eci.pigball.game.model.Game;
-import co.edu.eci.pigball.game.model.DTO.PlayerDTO;
-import co.edu.eci.pigball.game.model.DTO.GameDTO;
 import co.edu.eci.pigball.game.service.GameService;
 import co.edu.eci.pigball.game.config.WebSocketEventListener;
 
@@ -47,11 +48,21 @@ public class GameControllerTest {
     private String gameId;
     private Player player;
     private Movement movement;
+    private GameDTO gameDTO;
 
     @BeforeEach
     void setUp() {
         gameId = "test-game-id";
-        player = new Player("TestPlayer", null, 0, 0, game);
+        
+        // Mock the Game object
+        when(game.getGameId()).thenReturn(gameId);
+        when(game.getPlayers()).thenReturn(new ConcurrentHashMap<>());
+        
+        // Create GameDTO from the mocked Game
+        gameDTO = new GameDTO(game);
+        
+        // Create player with the GameDTO
+        player = new Player("TestPlayer", null, 0, 0, gameDTO);
         movement = new Movement("TestPlayer", 1, 1);
     }
 

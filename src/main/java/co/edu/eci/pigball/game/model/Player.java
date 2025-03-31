@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import co.edu.eci.pigball.game.java.Pair;
+import co.edu.eci.pigball.game.model.dto.GameDTO;
 import lombok.Getter;
 
 @Getter
@@ -13,11 +14,11 @@ public class Player {
     private Integer team;
     private AtomicInteger x;
     private AtomicInteger y;
-    private Game game;  
+    private GameDTO game;  
 
     private static final int RADIUS = 20;
 
-    public Player(String name, String sessionId,int x, int y, Game game) {
+    public Player(String name, String sessionId, int x, int y, GameDTO game) {
         this.name = name;
         this.sessionId = sessionId;
         this.x = new AtomicInteger(x);
@@ -33,7 +34,7 @@ public class Player {
         this.team = team;
     }
 
-    public void setGame(Game game) {
+    public void setGame(GameDTO game) {
         this.game = game;
     }
 
@@ -50,7 +51,6 @@ public class Player {
         x.set(validatedCoordinates.getFirst());
         y.set(validatedCoordinates.getSecond());
     }
-
 
     public void setPosition(int x, int y, List<Player> players) {
         Pair<Integer, Integer> newCoordinates = new Pair<>(x, y);
@@ -77,8 +77,6 @@ public class Player {
     public Pair<Integer, Integer> validateCoordinates(Pair<Integer, Integer> coordinates) {
         int x = coordinates.getFirst();
         int y = coordinates.getSecond();
-        // Check if the player is colliding with another player
-
 
         // Check if the player is colliding with the walls
         Pair<Integer, Integer> validatedCoordinates = new Pair<>(this.x.get(), this.y.get());

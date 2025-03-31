@@ -11,13 +11,11 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.java.Pair;
-import co.edu.eci.pigball.game.model.DTO.GameDTO;
+import co.edu.eci.pigball.game.model.dto.GameDTO;
 import lombok.Getter;
 
 @Getter
 public class Game implements Runnable {
-
-    
 
     private SimpMessagingTemplate messagingTemplate;
     private String gameId;
@@ -36,7 +34,7 @@ public class Game implements Runnable {
     private static final double FRAME_RATE = 60;
 
     public Game(String gameName, String creatorName, int maxPlayers, boolean privateGame, SimpMessagingTemplate messagingTemplate) {
-        this.gameId = UUID.randomUUID().toString(); // Genera un UUID único
+        this.gameId = UUID.randomUUID().toString();
         this.gameName = gameName;
         this.creatorName = creatorName;
         this.maxPlayers = maxPlayers;
@@ -75,6 +73,10 @@ public class Game implements Runnable {
     }
 
     public void addPlayer(Player player) throws GameException {
+        // Convert Game to GameDTO for the player
+        GameDTO gameDTO = GameDTO.toDTO(this);
+        player.setGame(gameDTO);
+
         // Validar el equipo, si es distinto de null debe ser 0 o 1.
         if (player.getTeam() != null && player.getTeam() != 0 && player.getTeam() != 1) {
             throw new GameException(GameException.INVALID_TEAM);
@@ -156,7 +158,7 @@ public class Game implements Runnable {
             Thread.sleep(5000);
             status = GameStatus.IN_PROGRESS;
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            System.out.println("Error al iniciar el juego");
         }
         return GameDTO.toDTO(this);
     }

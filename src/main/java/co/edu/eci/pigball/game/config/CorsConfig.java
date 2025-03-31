@@ -45,7 +45,7 @@ public class CorsConfig implements WebMvcConfigurer {
             allowedOriginsHttps.split(",")
         ).stream()
         .flatMap(Arrays::stream)
-        .collect(Collectors.toList());
+        .toList();
         config.setAllowedOrigins(allOrigins);
         config.setAllowedHeaders(Arrays.asList("Origin", "Content-Type", "Accept", "Authorization"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));

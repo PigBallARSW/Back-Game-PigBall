@@ -11,7 +11,7 @@ import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.model.Game;
 import co.edu.eci.pigball.game.model.Movement;
 import co.edu.eci.pigball.game.model.Player;
-import co.edu.eci.pigball.game.model.DTO.GameDTO;
+import co.edu.eci.pigball.game.model.dto.GameDTO;
 
 @Service
 public class GameService {
@@ -86,7 +86,7 @@ public class GameService {
             throw new GameException(GameException.GAME_NOT_FOUND);
         }
         System.out.println("Player " + player.getName() + " joined to game " + game.getGameId());
-        player.setGame(game);
+        player.setGame(GameDTO.toDTO(game));
         game.addPlayer(player);
         return game.getAllPlayers();
     }

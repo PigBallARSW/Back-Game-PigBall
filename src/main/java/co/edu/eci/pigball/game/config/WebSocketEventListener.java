@@ -1,5 +1,7 @@
 package co.edu.eci.pigball.game.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
@@ -13,6 +15,8 @@ import java.util.concurrent.*;
 
 @Component
 public class WebSocketEventListener {
+
+    private static final Logger logger = LoggerFactory.getLogger(WebSocketEventListener.class);
 
     private final GameService gameService;
     // Mapea el nombre del jugador a su sessionId
@@ -36,9 +40,9 @@ public class WebSocketEventListener {
         String sessionId = accessor.getSessionId();
 
         if (sessionId != null) {
-            System.out.println("✅ Nueva conexión STOMP detectada - Session ID: " + sessionId);
+            logger.info("✅ Nueva conexión STOMP detectada - Session ID: {}", sessionId);
         } else {
-            System.out.println("⚠️ No se pudo obtener Session ID en conexión STOMP");
+            logger.warn("⚠️ No se pudo obtener Session ID en conexión STOMP");
         }
     }
 
@@ -50,12 +54,12 @@ public class WebSocketEventListener {
         // Intentamos insertar el sessionId solo si el jugador no tenía una sesión
         String existingSession = nameToSession.putIfAbsent(playerName, sessionId);
         if (existingSession == null) {
-            System.out.println("✅ Jugador " + playerName + " conectado con sesión: " + sessionId);
+            logger.info("✅ Jugador {} conectado con sesión: {}", playerName, sessionId);
         } else {
             // Si ya había una sesión, actualizamos el mapping y cancelamos la eliminación
             nameToSession.put(playerName, sessionId);
             sessionToPlayer.remove(existingSession);
-            System.out.println("🔄 Jugador " + playerName + " cambió de sesión: " + existingSession + " -> " + sessionId);
+            logger.info("🔄 Jugador {} cambió de sesión: {} -> {}", playerName, existingSession, sessionId);
             cancelDisconnection(playerName);
         }
         // Actualizamos o insertamos la nueva relación sessionId -> (gameId, playerName)
@@ -75,17 +79,15 @@ public class WebSocketEventListener {
                 String gameId = gamePlayerInfo.getFirst();
                 String playerName = gamePlayerInfo.getSecond();
 
-                System.out.println("🔴 Sesión desconectada: " + sessionId + " (Jugador: " + playerName + ")");
+                logger.info("🔴 Sesión desconectada: {} (Jugador: {})", sessionId, playerName);
 
                 // Programar eliminación del jugador después de 30 segundos
-                ScheduledFuture<?> scheduledTask = scheduler.schedule(() -> {
-                    removePlayerFromGame(gameId, playerName);
-                }, 30, TimeUnit.SECONDS);
+                ScheduledFuture<?> scheduledTask = scheduler.schedule(() -> removePlayerFromGame(gameId, playerName), 30, TimeUnit.SECONDS);
 
                 disconnectTimers.put(playerName, scheduledTask);
             }
         } else {
-            System.out.println("⚠️ No se pudo obtener Session ID en desconexión STOMP");
+            logger.warn("⚠️ No se pudo obtener Session ID en desconexión STOMP");
         }
     }
 
@@ -95,14 +97,14 @@ public class WebSocketEventListener {
     private void removePlayerFromGame(String gameId, String playerName) {
         try {
             gameService.removePlayerFromGame(gameId, playerName);
-            System.out.println("❌ Jugador eliminado por inactividad: " + playerName);
+            logger.info("❌ Jugador eliminado por inactividad: {}", playerName);
             String removedSession = nameToSession.remove(playerName);
             sessionToPlayer.remove(removedSession);
             if (removedSession != null) {
-                System.out.println("🔄 Eliminando mapeo de sesión para " + playerName);
+                logger.info("🔄 Eliminando mapeo de sesión para {}", playerName);
             }
         } catch (Exception e) {
-            System.out.println("⚠️ No se pudo eliminar al jugador " + playerName);
+            logger.warn("⚠️ No se pudo eliminar al jugador {}", playerName);
         }
     }
 
@@ -113,7 +115,7 @@ public class WebSocketEventListener {
         ScheduledFuture<?> scheduledTask = disconnectTimers.remove(playerName);
         if (scheduledTask != null) {
             scheduledTask.cancel(false);
-            System.out.println("✅ Reconexión detectada, cancelando eliminación de " + playerName);
+            logger.info("✅ Reconexión detectada, cancelando eliminación de {}", playerName);
         }
     }
 }

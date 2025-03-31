@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.model.Game;
 import co.edu.eci.pigball.game.model.Player;
-import co.edu.eci.pigball.game.model.DTO.GameDTO;
+import co.edu.eci.pigball.game.model.dto.GameDTO;
 
 public class GameTest {
     private Game game;
@@ -22,10 +22,11 @@ public class GameTest {
     @BeforeEach
     void setUp() {
         game = new Game("Juego1", "Creador1", 4, false, null);
-        player1 = new Player("player1", null, 0, 0, game);
-        player2 = new Player("player2", null, 0, 0, game);
-        player3 = new Player("player3", null, 0, 0, game);
-        player4 = new Player("player4", null, 0, 0, game);
+        
+        player1 = new Player("player1", null, 0, 0, GameDTO.toDTO(game));
+        player2 = new Player("player2", null, 0, 0, GameDTO.toDTO(game));
+        player3 = new Player("player3", null, 0, 0, GameDTO.toDTO(game));
+        player4 = new Player("player4", null, 0, 0, GameDTO.toDTO(game));
     }
 
     @Test
@@ -126,7 +127,7 @@ public class GameTest {
             game.addPlayer(player2);
             game.addPlayer(player3);
             game.addPlayer(player4);
-            game.addPlayer(new Player("player5", null, 0, 0, game));
+            game.addPlayer(new Player("player5", null, 0, 0, GameDTO.toDTO(game)));
             fail("Should throw GameException when exceeding max players");
         } catch (GameException e) {
             assertEquals(GameException.EXCEEDED_MAX_PLAYERS, e.getMessage());

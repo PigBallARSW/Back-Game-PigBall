@@ -1,4 +1,4 @@
-package co.edu.eci.pigball.game.model.DTO;
+package co.edu.eci.pigball.game.model.dto;
 
 
 import java.util.Collection;
@@ -30,7 +30,7 @@ public class PlayerDTO {
         playerDTO.setTeam(player.getTeam());
         playerDTO.setX(player.getX());
         playerDTO.setY(player.getY());
-        playerDTO.setGameId(player.getGame().getGameId());
+        playerDTO.setGameId(player.getGame().getId());
         return playerDTO;
     }
     
