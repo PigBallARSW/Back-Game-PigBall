@@ -92,6 +92,9 @@ public class GameService {
     }
 
     public List<Player> removePlayerFromGame(String gameId, Player player) throws GameException {
+        if (gameId == null) {
+            throw new GameException(GameException.NOT_EMPTY_ID);
+        }
         Game game = games.get(gameId);
         if (game == null) {
             throw new GameException(GameException.GAME_NOT_FOUND);
@@ -102,6 +105,9 @@ public class GameService {
     }
 
     public List<Player> removePlayerFromGame(String gameId, String playerName) throws GameException {
+        if (gameId == null) {
+            throw new GameException(GameException.NOT_EMPTY_ID);
+        }
         Game game = games.get(gameId);
         if (game == null) {
             throw new GameException(GameException.GAME_NOT_FOUND);
@@ -112,6 +118,9 @@ public class GameService {
     }
 
     public List<Player> getPlayersFromGame(String gameId) throws GameException {
+        if (gameId == null) {
+            throw new GameException(GameException.NOT_EMPTY_ID);
+        }
         Game game = games.get(gameId);
         if (game == null) {
             throw new GameException(GameException.GAME_NOT_FOUND);
@@ -120,6 +129,9 @@ public class GameService {
     }
 
     public GameDTO startGame(String gameId) throws GameException {
+        if (gameId == null) {
+            throw new GameException(GameException.NOT_EMPTY_ID);
+        }
         Game game = games.get(gameId);
         if (game == null) {
             throw new GameException(GameException.GAME_NOT_FOUND);
@@ -128,6 +140,9 @@ public class GameService {
     }
 
     public void makeMoveInGame(String gameId, Movement movement) throws GameException {
+        if (gameId == null) {
+            throw new GameException(GameException.NOT_EMPTY_ID);
+        }
         Game game = games.get(gameId);
         if (game == null) {
            throw new GameException(GameException.GAME_NOT_FOUND);

@@ -1,0 +1,48 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest  # Se ejecuta en una VM de GitHub Actions
+
+    steps:
+      - name: 🚀 Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: 📂 Configurar conexión SSH y desplegar en EC2
+        env:
+          PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ec2-user
+        run: |
+          echo "$PRIVATE_KEY" > private_key.pem
+          chmod 600 private_key.pem
+          
+          ssh -o StrictHostKeyChecking=no -i private_key.pem $EC2_USER@$EC2_HOST << 'EOF'
+            set -e
+
+            echo "🚀 Actualizando código..."
+            cd ~/Back-Game-PigBall
+            git pull origin main
+
+            echo "🔄 Reemplazando el keystore..."
+            cp ~/ecikeystore.p12 ~/Back-Game-PigBall/src/main/resources/ecikeystore.p12
+
+            echo "📦 Construyendo la imagen Docker..."
+            cd ~/Back-Game-PigBall
+            
+            docker build -t my-app .
+
+            echo "🛑 Deteniendo contenedor previo..."
+            docker stop my-app || true
+            docker rm my-app || true
+
+            echo "🚀 Ejecutando nuevo contenedor..."
+            docker run -d --name my-app --env-file .env -p 8080:8080 my-app
+
+            echo "🎉 Despliegue exitoso en EC2"
+          EOF

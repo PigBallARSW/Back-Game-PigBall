@@ -1,7 +1,10 @@
 package co.edu.eci.pigball.game.config;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -20,6 +23,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class CorsConfig implements WebMvcConfigurer {
 
+    @Value("${ALLOWED_ORIGINS_HTTP}")
+    private String allowedOriginsHttp;
+
+    @Value("${ALLOWED_ORIGINS_HTTPS}")
+    private String allowedOriginsHttps;
+
     /*
      * Method that registers the CORS filter
      * 
@@ -30,8 +39,14 @@ public class CorsConfig implements WebMvcConfigurer {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(
-                Arrays.asList("http://localhost:3000", "https://192.168.0.191:3000" ,"http://frontendeci.duckdns.org", "https://localhost:3000", "https://frontendeci.duckdns.org"));
+        // Combine HTTP and HTTPS origins
+        List<String> allOrigins = Arrays.asList(
+            allowedOriginsHttp.split(","),
+            allowedOriginsHttps.split(",")
+        ).stream()
+        .flatMap(Arrays::stream)
+        .collect(Collectors.toList());
+        config.setAllowedOrigins(allOrigins);
         config.setAllowedHeaders(Arrays.asList("Origin", "Content-Type", "Accept", "Authorization"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         source.registerCorsConfiguration("/**", config);
