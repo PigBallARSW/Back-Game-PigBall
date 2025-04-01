@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,7 +19,6 @@ import co.edu.eci.pigball.game.model.Movement;
 import co.edu.eci.pigball.game.model.Player;
 import co.edu.eci.pigball.game.model.dto.GameDTO;
 import co.edu.eci.pigball.game.model.dto.PlayerDTO;
-import co.edu.eci.pigball.game.model.Game;
 import co.edu.eci.pigball.game.service.GameService;
 import co.edu.eci.pigball.game.config.WebSocketEventListener;
 

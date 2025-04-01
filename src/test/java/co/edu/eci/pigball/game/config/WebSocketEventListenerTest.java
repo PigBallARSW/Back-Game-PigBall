@@ -29,6 +29,7 @@ class WebSocketEventListenerTest {
     @Mock
     private SessionDisconnectEvent disconnectEvent;
 
+    @SuppressWarnings("rawtypes")
     @Mock
     private Message message;
 
@@ -45,6 +46,7 @@ class WebSocketEventListenerTest {
         eventListener = new WebSocketEventListener(gameService);
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void testHandleWebSocketConnectListener() {
         // Setup
