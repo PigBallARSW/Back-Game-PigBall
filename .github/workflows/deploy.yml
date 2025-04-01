@@ -7,7 +7,7 @@ on:
 
 jobs:
   deploy:
-    uses: PigBallARSW/central-pipelines/.github/workflows/deploy.yml@V0.2.4
+    uses: PigBallARSW/central-pipelines/.github/workflows/deploy.yml@V0.2.5
     with:
       PROJECT_NAME: "Back-Game-PigBall"       # Nombre de la carpeta/proyecto en la instancia EC2
       IMAGE_NAME: "piggame"                  # Nombre de la imagen Docker
