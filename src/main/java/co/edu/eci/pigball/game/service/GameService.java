@@ -89,7 +89,7 @@ public class GameService {
         if (game == null) {
             throw new GameException(GameException.GAME_NOT_FOUND);
         }
-        logger.info("Player with name: " + player.getName() + " joined to game " + game.getGameId());
+        logger.info("Player added with name: " + player.getName() + " to game " + game.getGameId());
         game.addPlayer(player);
         return game.getAllPlayers();
     }
@@ -102,7 +102,7 @@ public class GameService {
         if (game == null) {
             throw new GameException(GameException.GAME_NOT_FOUND);
         }
-        logger.info("Player with name: " + player.getName() + " left game " + game.getGameId());
+        logger.info("Player removed with name: " + player.getName() + " from game " + game.getGameId());
         game.removePlayer(player);
         return game.getAllPlayers();
     }
@@ -115,7 +115,7 @@ public class GameService {
         if (game == null) {
             throw new GameException(GameException.GAME_NOT_FOUND);
         }
-        logger.info("Player with name: " + playerName + " left game " + game.getGameId());
+        logger.info("Player removed with name: " + playerName + " from game " + game.getGameId());
         game.removePlayer(playerName);
         return game.getAllPlayers();
     }

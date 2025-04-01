@@ -92,10 +92,10 @@ public class Player {
             if (player != this) {
                 int px = player.getX();
                 int py = player.getY();
-                double distance = Math.sqrt(Math.pow(px - newX, 2) + Math.pow(py - newY, 2));
+                double distance = Math.sqrt(Math.pow((double)px - newX, 2) + Math.pow((double)py - newY, 2));
                 if (distance < 2 * RADIUS) {
                     // Stop the movement as close as possible to the other player
-                    double angle = Math.atan2((double) newY - py, newX - px);
+                    double angle = Math.atan2((double) newY - py, (double) newX - px);
                     newX = px + (int) (Math.cos(angle) * 2 * RADIUS);
                     newY = py + (int) (Math.sin(angle) * 2 * RADIUS);
                     break;

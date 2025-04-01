@@ -62,7 +62,11 @@ class GameTest {
         } catch (GameException e) {
             fail("Exception should not be thrown when adding players: " + e.getMessage());
         }
-        game.startGame();
+        try {
+            game.startGame();
+        } catch (GameException e) {
+            fail("Exception should not be thrown when starting game: " + e.getMessage());
+        }
         assertNotNull(GameDTO.toDTO(game));
         assertEquals(2, GameDTO.toDTO(game).getPlayers().size());
     }
@@ -201,7 +205,12 @@ class GameTest {
         }
 
         // Start game and verify initial state
-        GameDTO gameDTO = game.startGame();
+        GameDTO gameDTO = null;
+        try {
+            gameDTO = game.startGame();
+        } catch (GameException e) {
+            fail("Exception should not be thrown when starting game: " + e.getMessage());
+        }
         assertNotNull(gameDTO);
 
         // Verify game state after starting

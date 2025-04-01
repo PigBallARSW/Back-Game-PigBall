@@ -23,7 +23,7 @@ import co.edu.eci.pigball.game.service.GameService;
 import co.edu.eci.pigball.game.config.WebSocketEventListener;
 
 @ExtendWith(MockitoExtension.class)
-public class GameControllerTest {
+class GameControllerTest {
 
     @Mock
     private GameService gameService;

@@ -1,5 +1,6 @@
 package co.edu.eci.pigball.game.model;
 
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -108,15 +109,17 @@ public class Game implements Runnable {
         if (player.getTeam() == null) {
             player.setTeam(existingPlayer.getTeam());
         } else if (!player.getTeam().equals(existingPlayer.getTeam())) {
-            updateTeamCounts(existingPlayer.getTeam(), player.getTeam());
+            updateTeamCounts(existingPlayer.getTeam());
         }
         return player;
     }
 
     private Player handleNewPlayer(Player player) {
-        player.setPosition(borderX, borderY,
-                (int) (Math.random() * (borderX - 20)) + 20,
-                (int) (Math.random() * (borderY - 20)) + 20);
+        SecureRandom random = new SecureRandom();
+        int newX = random.nextInt(borderX - 40) + 20;
+        int newY = random.nextInt(borderY - 40) + 20;
+
+        player.setPosition(borderX, borderY, newX, newY);
 
         if (player.getTeam() == null) {
             assignTeam(player);
@@ -124,7 +127,7 @@ public class Game implements Runnable {
         return player;
     }
 
-    private void updateTeamCounts(Integer oldTeam, Integer newTeam) {
+    private void updateTeamCounts(Integer oldTeam) {
         if (oldTeam == 0) {
             teams.getFirst().removePlayer();
             teams.getSecond().addPlayer();
@@ -156,7 +159,7 @@ public class Game implements Runnable {
         return new ArrayList<>(players.values());
     }
 
-    public GameDTO startGame() {
+    public GameDTO startGame() throws GameException {
         status = GameStatus.STARTING;
         int ubicatedPlayersTeamOne = 0;
         int ubicatedPlayersTeamTwo = 0;
@@ -179,7 +182,7 @@ public class Game implements Runnable {
             status = GameStatus.IN_PROGRESS;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException("Game start interrupted", e);
+            throw new GameException(GameException.GAME_START_INTERRUPTED);
         }
         return GameDTO.toDTO(this);
     }
