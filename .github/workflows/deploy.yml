@@ -25,23 +25,21 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i private_key.pem $EC2_USER@$EC2_HOST << 'EOF'
             set -e
 
-            echo "🚀 Actualizando código..."
+            echo "🚀 Forzando actualización del código..."
             cd ~/Back-Game-PigBall
-            git pull origin main
+            git fetch --all
+            git reset --hard origin/main
 
             echo "🔄 Reemplazando el keystore..."
             cp ~/ecikeystore.p12 ~/Back-Game-PigBall/src/main/resources/ecikeystore.p12
 
-            echo "📦 Construyendo la imagen Docker..."
-            cd ~/Back-Game-PigBall
-
-            echo "🔑 Obteniendo secretos..."
+            echo "📚 Obteniendo secretos..."
             aws secretsmanager get-secret-value --secret-id "arn:aws:secretsmanager:us-east-1:731472544938:secret:prod/pigball/game-uphXKG" --region us-east-1 --query SecretString --output text  | jq -r 'to_entries | map("\(.key)=\(.value)") | .[]' > .env
 
-            echo "🔄 Construyendo imagen Docker..."
+            echo "🛠️ Construyendo imagen Docker..."
             docker build -t my-app .
 
-            echo "🛑 Deteniendo contenedor previo..."
+            echo "🚫 Deteniendo contenedor previo..."
             docker stop my-app || true
             docker rm my-app || true
 
