@@ -1,50 +1,22 @@
-name: Deploy to EC2
+name: Deploy Release
 
 on:
   push:
     branches:
-      - dev
+      - dev 
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest  # Se ejecuta en una VM de GitHub Actions
-
-    steps:
-      - name: 🚀 Checkout del repositorio
-        uses: actions/checkout@v4
-
-      - name: 📂 Configurar conexión SSH y desplegar en EC2
-        env:
-          PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
-          EC2_HOST: ${{ secrets.EC2_HOST }}
-          EC2_USER: ec2-user
-        run: |
-          echo "$PRIVATE_KEY" > private_key.pem
-          chmod 600 private_key.pem
-          
-          ssh -o StrictHostKeyChecking=no -i private_key.pem $EC2_USER@$EC2_HOST << 'EOF'
-            set -e
-
-            echo "🚀 Forzando actualización del código..."
-            cd ~/Back-Game-PigBall
-            git fetch --all
-            git reset --hard origin/main
-
-            echo "🔄 Reemplazando el keystore..."
-            cp ~/ecikeystore.p12 ~/Back-Game-PigBall/src/main/resources/ecikeystore.p12
-
-            echo "📚 Obteniendo secretos..."
-            aws secretsmanager get-secret-value --secret-id "arn:aws:secretsmanager:us-east-1:731472544938:secret:prod/pigball/game-uphXKG" --region us-east-1 --query SecretString --output text  | jq -r 'to_entries | map("\(.key)=\(.value)") | .[]' > .env
-
-            echo "🛠️ Construyendo imagen Docker..."
-            docker build -t piggame .
-
-            echo "🚫 Deteniendo contenedor previo..."
-            docker stop piggame || true
-            docker rm piggame || true
-
-            echo "🚀 Ejecutando nuevo contenedor..."
-              docker run -d --name piggame --env-file .env -p 8080:8080 piggame
-
-            echo "🎉 Despliegue exitoso en EC2"
-          EOF
+    uses: PigBallARSW/central-pipelines/.github/workflows/deploy.yml@V0.2.2
+    with:
+      PROJECT_NAME: "Back-Game-PigBall"       # Nombre de la carpeta/proyecto en la instancia EC2
+      IMAGE_NAME: "piggame"                  # Nombre de la imagen Docker
+      CONTAINER_NAME: "piggame"              # Nombre del contenedor Docker
+      PORT: "8080"                        # Puerto en el que se expondrá el contenedor
+      REPO_URL: "https://github.com/PigBallARSW/Back-Game-PigBall.git"  # URL del repositorio a desplegar
+      BRANCH: "dev"                      
+    secrets:
+      EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+      EC2_HOST: ${{ secrets.EC2_HOST }}
+      EC2_USER: ${{ secrets.EC2_USER }}
+      AWS_SECRET_ARN: ${{ secrets.AWS_SECRET_ARN }}
