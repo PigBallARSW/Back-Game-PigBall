@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
-@EnableScheduling  // This enables the execution of @Scheduled methods
+@EnableScheduling // This enables the execution of @Scheduled methods
 public class GameApplication {
 
 	public static void main(String[] args) {
@@ -18,14 +18,14 @@ public class GameApplication {
 		} catch (Exception e) {
 			// Continue without .env file
 		}
-		
+
 		// If SSL is disabled, ensure we're using HTTP
 		if (Boolean.parseBoolean(System.getProperty("server.ssl.enabled", "false"))) {
 			System.setProperty("server.port", "8443");
 		} else {
 			System.setProperty("server.port", "8080");
 		}
-		
+
 		SpringApplication.run(GameApplication.class, args);
 	}
 

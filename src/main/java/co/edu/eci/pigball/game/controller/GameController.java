@@ -29,7 +29,7 @@ import co.edu.eci.pigball.game.config.WebSocketEventListener;
 public class GameController {
 
     private static final Logger logger = LoggerFactory.getLogger(GameController.class);
-    
+
     private final GameService gameService;
     private final WebSocketEventListener webSocketEventListener;
 
@@ -49,8 +49,7 @@ public class GameController {
             webSocketEventListener.setANewConnection(sessionId, gameId, player.getName());
             return (List<PlayerDTO>) PlayerDTO.toDTO(players);
         } catch (GameException e) {
-            return null;
-            
+            return new ArrayList<>();
         }
     }
 
@@ -85,7 +84,8 @@ public class GameController {
         try {
             gameService.makeMoveInGame(gameId, movement);
         } catch (GameException e) {
-            logger.error("Error al hacer un movimiento en el juego", e);
+            logger.error("Error al hacer un movimiento en el juego");
+            // Don't throw the exception, just log it
         }
     }
 }

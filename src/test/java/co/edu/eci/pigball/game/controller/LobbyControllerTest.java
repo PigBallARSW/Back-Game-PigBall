@@ -20,7 +20,7 @@ import co.edu.eci.pigball.game.model.dto.GameDTO;
 import co.edu.eci.pigball.game.service.GameService;
 
 @ExtendWith(MockitoExtension.class)
-public class LobbyControllerTest {
+class LobbyControllerTest {
 
     @Mock
     private GameService gameService;
@@ -175,4 +175,4 @@ public class LobbyControllerTest {
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals(GameException.GAME_NOT_FOUND, response.getBody());
     }
-} 
+}

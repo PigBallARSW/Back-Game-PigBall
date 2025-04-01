@@ -25,6 +25,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         String[] origins = (allowedOriginsHttp + "," + allowedOriginsHttps).split(",");
         registry.addEndpoint("/pigball")
-            .setAllowedOrigins(origins);
+                .setAllowedOrigins(origins);
     }
 }

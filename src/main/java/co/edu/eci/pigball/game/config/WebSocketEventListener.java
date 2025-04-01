@@ -82,7 +82,8 @@ public class WebSocketEventListener {
                 logger.info("🔴 Sesión desconectada: {} (Jugador: {})", sessionId, playerName);
 
                 // Programar eliminación del jugador después de 30 segundos
-                ScheduledFuture<?> scheduledTask = scheduler.schedule(() -> removePlayerFromGame(gameId, playerName), 30, TimeUnit.SECONDS);
+                ScheduledFuture<?> scheduledTask = scheduler.schedule(() -> removePlayerFromGame(gameId, playerName),
+                        30, TimeUnit.SECONDS);
 
                 disconnectTimers.put(playerName, scheduledTask);
             }

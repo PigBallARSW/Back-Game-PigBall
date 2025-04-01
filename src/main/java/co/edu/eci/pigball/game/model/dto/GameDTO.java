@@ -27,7 +27,7 @@ public class GameDTO {
     private int borderX;
     private int borderY;
     private List<PlayerDTO> players;
-    
+
     public GameDTO(Game game) {
         this.id = game.getGameId();
         this.gameName = game.getGameName();
@@ -43,12 +43,14 @@ public class GameDTO {
     }
 
     public int getMaxPlayers() {
-        if(maxPlayers==null) return 4;
+        if (maxPlayers == null)
+            return 4;
         return maxPlayers;
     }
 
     public boolean isPrivateGame() {
-        if(privateGame==null) return false;
+        if (privateGame == null)
+            return false;
         return privateGame;
     }
 

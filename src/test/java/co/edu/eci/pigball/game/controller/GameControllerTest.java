@@ -39,36 +39,22 @@ public class GameControllerTest {
     @Mock
     private SimpMessageHeaderAccessor headerAccessor;
 
-    @Mock(lenient = true)
-    private Game game;
-
     @InjectMocks
     private GameController gameController;
 
     private String gameId;
     private Player player;
     private Movement movement;
-    private GameDTO gameDTO;
 
     @BeforeEach
     void setUp() {
         gameId = "test-game-id";
-        
-        // Mock the Game object
-        when(game.getGameId()).thenReturn(gameId);
-        when(game.getPlayers()).thenReturn(new ConcurrentHashMap<>());
-        
-        // Create GameDTO from the mocked Game
-        gameDTO = new GameDTO(game);
-        
-        // Create player with the GameDTO
-        player = new Player("TestPlayer", null, 0, 0, gameDTO);
+        player = new Player("TestPlayer", null, 0, 0);
         movement = new Movement("TestPlayer", 1, 1);
     }
 
     @Test
     void testHandleNewPlayer() throws GameException {
-        when(game.getGameId()).thenReturn(gameId);
         when(headerAccessor.getSessionId()).thenReturn("test-session-id");
         when(gameService.addPlayerToGame(gameId, player)).thenReturn(List.of(player));
         
@@ -82,19 +68,20 @@ public class GameControllerTest {
 
     @Test
     void testHandleNewPlayerWithException() throws GameException {
-        when(game.getGameId()).thenReturn(gameId);
         when(headerAccessor.getSessionId()).thenReturn("test-session-id");
         when(gameService.addPlayerToGame(gameId, player)).thenThrow(new GameException("Test error"));
         
         List<PlayerDTO> result = gameController.handleNewPlayer(gameId, player, headerAccessor);
         
-        assertNull(result);
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        verify(webSocketEventListener, never()).setANewConnection(any(), any(), any());
     }
 
     @Test
     void testHandlePlayerExit() throws GameException {
-        when(game.getGameId()).thenReturn(gameId);
         when(gameService.removePlayerFromGame(gameId, player)).thenReturn(List.of());
+        
         List<PlayerDTO> result = gameController.handlePlayerExit(gameId, player);
         
         assertNotNull(result);
@@ -103,7 +90,6 @@ public class GameControllerTest {
 
     @Test
     void testHandlePlayerExitWithException() throws GameException {
-        when(game.getGameId()).thenReturn(gameId);
         when(gameService.removePlayerFromGame(gameId, player)).thenThrow(new GameException("Test error"));
         when(gameService.getPlayersFromGame(gameId)).thenReturn(List.of());
         
@@ -148,4 +134,4 @@ public class GameControllerTest {
         assertDoesNotThrow(() -> gameController.makeAMovement(gameId, movement));
         verify(gameService).makeMoveInGame(gameId, movement);
     }
-} 
+}

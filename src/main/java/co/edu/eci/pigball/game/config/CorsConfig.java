@@ -2,7 +2,6 @@ package co.edu.eci.pigball.game.config;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -41,11 +40,10 @@ public class CorsConfig implements WebMvcConfigurer {
         config.setAllowCredentials(true);
         // Combine HTTP and HTTPS origins
         List<String> allOrigins = Arrays.asList(
-            allowedOriginsHttp.split(","),
-            allowedOriginsHttps.split(",")
-        ).stream()
-        .flatMap(Arrays::stream)
-        .toList();
+                allowedOriginsHttp.split(","),
+                allowedOriginsHttps.split(",")).stream()
+                .flatMap(Arrays::stream)
+                .toList();
         config.setAllowedOrigins(allOrigins);
         config.setAllowedHeaders(Arrays.asList("Origin", "Content-Type", "Accept", "Authorization"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));

@@ -13,9 +13,13 @@ import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.java.Pair;
 import co.edu.eci.pigball.game.model.dto.GameDTO;
 import lombok.Getter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Getter
 public class Game implements Runnable {
+
+    private static final Logger logger = LoggerFactory.getLogger(Game.class);
 
     private SimpMessagingTemplate messagingTemplate;
     private String gameId;
@@ -30,10 +34,11 @@ public class Game implements Runnable {
     private Pair<Team, Team> teams;
     private ConcurrentHashMap<String, Player> players;
 
-    private static final int velocity = 5;
+    private static final int VELOCITY = 5;
     private static final double FRAME_RATE = 60;
 
-    public Game(String gameName, String creatorName, int maxPlayers, boolean privateGame, SimpMessagingTemplate messagingTemplate) {
+    public Game(String gameName, String creatorName, int maxPlayers, boolean privateGame,
+            SimpMessagingTemplate messagingTemplate) {
         this.gameId = UUID.randomUUID().toString();
         this.gameName = gameName;
         this.creatorName = creatorName;
@@ -69,60 +74,75 @@ public class Game implements Runnable {
         try {
             messagingTemplate.convertAndSend("/topic/play/" + gameId, GameDTO.toDTO(this));
         } catch (Exception e) {
+            logger.error("Error al enviar el estado del juego");
         }
     }
 
     public void addPlayer(Player player) throws GameException {
-        // Convert Game to GameDTO for the player
-        GameDTO gameDTO = GameDTO.toDTO(this);
-        player.setGame(gameDTO);
+        validatePlayerTeam(player);
+        validateMaxPlayers();
 
-        // Validar el equipo, si es distinto de null debe ser 0 o 1.
+        players.compute(player.getName(), (key, existingPlayer) -> {
+            if (existingPlayer != null) {
+                return handleExistingPlayer(player, existingPlayer);
+            }
+            return handleNewPlayer(player);
+        });
+    }
+
+    private void validatePlayerTeam(Player player) throws GameException {
         if (player.getTeam() != null && player.getTeam() != 0 && player.getTeam() != 1) {
             throw new GameException(GameException.INVALID_TEAM);
         }
-        // Verificar que no se exceda el máximo de jugadores
+    }
+
+    private void validateMaxPlayers() throws GameException {
         if (players.size() >= maxPlayers) {
             throw new GameException(GameException.EXCEEDED_MAX_PLAYERS);
         }
-        
-        players.compute(player.getName(), (key, existingPlayer) -> {
-            if (existingPlayer != null) {
-                // Conservar la posición existente
-                player.setPosition(existingPlayer.getX(), existingPlayer.getY());
-                // Si el nuevo jugador tiene equipo nulo, se asigna el equipo del existente.
-                if (player.getTeam() == null) {
-                    player.setTeam(existingPlayer.getTeam());
-                } 
-                // Si ambos tienen equipos no nulos, se comparan.
-                else if (!player.getTeam().equals(existingPlayer.getTeam())) {
-                    // Actualizar contadores de equipos: restar en el equipo antiguo y sumar en el nuevo.
-                    if (existingPlayer.getTeam() == 0) {
-                        teams.getFirst().removePlayer();
-                        teams.getSecond().addPlayer();
-                    } else { // Si el existente era del equipo 1
-                        teams.getSecond().removePlayer();
-                        teams.getFirst().addPlayer();
-                    }
-                }
-            } else {
-                // Jugador nuevo: asignar posiciones aleatorias.
-                player.setPosition((int) (Math.random() * (borderX-20))+20, (int) (Math.random() * (borderY-20))+20);
-                // Si el jugador no tiene equipo asignado, se le asigna el equipo según el balance.
-                if (player.getTeam() == null) {
-                    if (teams.getFirst().getPlayers() < teams.getSecond().getPlayers()) {
-                        player.setTeam(0);
-                        teams.getFirst().addPlayer();
-                    } else {
-                        player.setTeam(1);
-                        teams.getSecond().addPlayer();
-                    }
-                }
-            }
-            return player;
-        });
     }
-    
+
+    private Player handleExistingPlayer(Player player, Player existingPlayer) {
+        player.setPosition(borderX, borderY, existingPlayer.getX(), existingPlayer.getY());
+
+        if (player.getTeam() == null) {
+            player.setTeam(existingPlayer.getTeam());
+        } else if (!player.getTeam().equals(existingPlayer.getTeam())) {
+            updateTeamCounts(existingPlayer.getTeam(), player.getTeam());
+        }
+        return player;
+    }
+
+    private Player handleNewPlayer(Player player) {
+        player.setPosition(borderX, borderY,
+                (int) (Math.random() * (borderX - 20)) + 20,
+                (int) (Math.random() * (borderY - 20)) + 20);
+
+        if (player.getTeam() == null) {
+            assignTeam(player);
+        }
+        return player;
+    }
+
+    private void updateTeamCounts(Integer oldTeam, Integer newTeam) {
+        if (oldTeam == 0) {
+            teams.getFirst().removePlayer();
+            teams.getSecond().addPlayer();
+        } else {
+            teams.getSecond().removePlayer();
+            teams.getFirst().addPlayer();
+        }
+    }
+
+    private void assignTeam(Player player) {
+        if (teams.getFirst().getPlayers() < teams.getSecond().getPlayers()) {
+            player.setTeam(0);
+            teams.getFirst().addPlayer();
+        } else {
+            player.setTeam(1);
+            teams.getSecond().addPlayer();
+        }
+    }
 
     public void removePlayer(Player player) {
         players.remove(player.getName());
@@ -143,22 +163,23 @@ public class Game implements Runnable {
         for (Player player : players.values()) {
             if (player.getTeam() == 0) {
                 int x = ubicatedPlayersTeamOne % 2 == 0 ? 5 : 0;
-                int y = (((borderY-40) / (maxPlayers / 2)) * ubicatedPlayersTeamOne) + 5;
-                player.setPosition(x, y);
+                int y = (((borderY - 40) / (maxPlayers / 2)) * ubicatedPlayersTeamOne) + 5;
+                player.setPosition(borderX, borderY, x, y);
                 ubicatedPlayersTeamOne++;
             } else {
                 int x = ubicatedPlayersTeamTwo % 2 == 0 ? borderX - 40 : borderX - 5;
-                int y = (((borderY-40) / (maxPlayers / 2)) * ubicatedPlayersTeamTwo) + 5;
-                player.setPosition(x, y);
+                int y = (((borderY - 40) / (maxPlayers / 2)) * ubicatedPlayersTeamTwo) + 5;
+                player.setPosition(borderX, borderY, x, y);
                 ubicatedPlayersTeamTwo++;
             }
         }
-        
+
         try {
             Thread.sleep(5000);
             status = GameStatus.IN_PROGRESS;
         } catch (InterruptedException e) {
-            System.out.println("Error al iniciar el juego");
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Game start interrupted", e);
         }
         return GameDTO.toDTO(this);
     }
@@ -170,9 +191,9 @@ public class Game implements Runnable {
         if (!players.containsKey(name)) {
             return;
         }
-    
+
         Player player = players.get(name);
-        
+
         double fdx = dx;
         double fdy = dy;
         double magnitude = Math.sqrt(fdx * fdx + fdy * fdy);
@@ -182,9 +203,9 @@ public class Game implements Runnable {
         }
         // Uso de Delta Time
         double dt = 100.0 / FRAME_RATE; // Delta Time basado en el framerate
-        double adjustedVelocity = velocity * dt;
-        player.move((int) (fdx * adjustedVelocity), (int) (fdy * adjustedVelocity), new ArrayList<>(players.values()));
+        double adjustedVelocity = VELOCITY * dt;
+        player.move(borderX, borderY, (int) (fdx * adjustedVelocity), (int) (fdy * adjustedVelocity),
+                new ArrayList<>(players.values()));
     }
-    
 
 }

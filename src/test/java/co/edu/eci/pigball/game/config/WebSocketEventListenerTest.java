@@ -1,6 +1,6 @@
 package co.edu.eci.pigball.game.config;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.*;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +18,7 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import co.edu.eci.pigball.game.service.GameService;
 
 @ExtendWith(MockitoExtension.class)
-public class WebSocketEventListenerTest {
+class WebSocketEventListenerTest {
 
     @Mock
     private GameService gameService;
@@ -78,6 +78,7 @@ public class WebSocketEventListenerTest {
         // Verify
         // Note: We can't directly verify the internal state of ConcurrentHashMaps
         // but we can verify that the method executes without throwing exceptions
+        assertDoesNotThrow(() -> eventListener.setANewConnection(sessionId, gameId, playerName));
     }
 
     @Test
@@ -108,5 +109,7 @@ public class WebSocketEventListenerTest {
         // Verify
         // Note: We can't directly verify the internal state of ConcurrentHashMaps
         // but we can verify that the method executes without throwing exceptions
+        assertDoesNotThrow(() -> eventListener.setANewConnection(sessionId1, gameId, playerName));
+        assertDoesNotThrow(() -> eventListener.setANewConnection(sessionId2, gameId, playerName));
     }
-} 
+}

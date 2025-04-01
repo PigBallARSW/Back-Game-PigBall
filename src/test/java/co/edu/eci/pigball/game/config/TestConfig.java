@@ -17,7 +17,7 @@ public class TestConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.addAllowedOrigin("http://example.com");
-        config.addAllowedOrigin("http://test.example.com"); 
+        config.addAllowedOrigin("http://test.example.com");
         config.addAllowedOrigin("https://example.com");
         config.addAllowedOrigin("https://test.example.com");
         config.addAllowedOrigin("https://dev.example.com");

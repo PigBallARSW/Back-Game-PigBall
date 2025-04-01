@@ -21,9 +21,8 @@ public class GameException extends Exception {
     public static final String INVALID_TEAM = "Invalid team";
     public static final String EXCEEDED_MAX_PLAYERS = "Exceeded max players";
 
-
     public GameException(String message) {
         super(message);
     }
-    
+
 }

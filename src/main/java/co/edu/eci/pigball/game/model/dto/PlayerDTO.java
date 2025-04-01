@@ -1,6 +1,5 @@
 package co.edu.eci.pigball.game.model.dto;
 
-
 import java.util.Collection;
 
 import co.edu.eci.pigball.game.model.Player;
@@ -20,8 +19,6 @@ public class PlayerDTO {
     private Integer team;
     private int x;
     private int y;
-    private String gameId;
-    
 
     public static PlayerDTO toDTO(Player player) {
         PlayerDTO playerDTO = new PlayerDTO();
@@ -30,10 +27,9 @@ public class PlayerDTO {
         playerDTO.setTeam(player.getTeam());
         playerDTO.setX(player.getX());
         playerDTO.setY(player.getY());
-        playerDTO.setGameId(player.getGame().getId());
         return playerDTO;
     }
-    
+
     public static Collection<PlayerDTO> toDTO(Collection<Player> players) {
         return players.stream().map(PlayerDTO::toDTO).toList();
     }

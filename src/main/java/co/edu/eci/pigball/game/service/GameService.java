@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.model.Game;
@@ -16,8 +18,10 @@ import co.edu.eci.pigball.game.model.dto.GameDTO;
 @Service
 public class GameService {
 
+    private static final Logger logger = LoggerFactory.getLogger(GameService.class);
     private final SimpMessagingTemplate messagingTemplate; // Inject messaging template
     private final Map<String, Game> games;
+
     public GameService(SimpMessagingTemplate messagingTemplate) {
         this.messagingTemplate = messagingTemplate;
         this.games = new ConcurrentHashMap<>();
@@ -26,10 +30,9 @@ public class GameService {
         games.put(game.getGameId(), game);
         Thread gameThread = new Thread(game);
         gameThread.start();
-        System.out.println("Game " + game.getGameId() + " created");
+        logger.info("Game created id: " + game.getGameId());
     }
 
-    
     public GameDTO createGame(GameDTO gameDTO) throws GameException {
         String gameName = gameDTO.getGameName();
         String creatorName = gameDTO.getCreatorName();
@@ -38,8 +41,10 @@ public class GameService {
         if (gameName == null || gameName.trim().isEmpty()) {
             throw new GameException(GameException.NOT_EMPTY_NAME);
         }
-        Game game = new Game(gameName, creatorName, maxPlayers, privateGame, messagingTemplate); // Asegurar que el ID es asignado externamente
-        
+        Game game = new Game(gameName, creatorName, maxPlayers, privateGame, messagingTemplate); // Asegurar que el ID
+                                                                                                 // es asignado
+                                                                                                 // externamente
+
         // Verificar si el ID ya existe antes de agregarlo
         Game existingGame = games.putIfAbsent(game.getGameId(), game);
         if (existingGame != null) {
@@ -48,8 +53,7 @@ public class GameService {
 
         Thread gameThread = new Thread(game);
         gameThread.start();
-
-        System.out.println("Game " + game.getGameId() + " created");
+        logger.info("Game created id: " + game.getGameId());
         return GameDTO.toDTO(game);
     }
 
@@ -76,7 +80,7 @@ public class GameService {
         if (game == null) {
             throw new GameException(GameException.GAME_NOT_FOUND);
         }
-        System.out.println("Game " + game.getGameId() + " removed");
+        logger.info("Game removed id: " + game.getGameId());
         games.remove(gameId);
     }
 
@@ -85,8 +89,7 @@ public class GameService {
         if (game == null) {
             throw new GameException(GameException.GAME_NOT_FOUND);
         }
-        System.out.println("Player " + player.getName() + " joined to game " + game.getGameId());
-        player.setGame(GameDTO.toDTO(game));
+        logger.info("Player with name: " + player.getName() + " joined to game " + game.getGameId());
         game.addPlayer(player);
         return game.getAllPlayers();
     }
@@ -99,7 +102,7 @@ public class GameService {
         if (game == null) {
             throw new GameException(GameException.GAME_NOT_FOUND);
         }
-        System.out.println("Player " + player.getName() + " left game " + game.getGameId());
+        logger.info("Player with name: " + player.getName() + " left game " + game.getGameId());
         game.removePlayer(player);
         return game.getAllPlayers();
     }
@@ -112,7 +115,7 @@ public class GameService {
         if (game == null) {
             throw new GameException(GameException.GAME_NOT_FOUND);
         }
-        System.out.println("Player " + playerName + " left game " + game.getGameId());
+        logger.info("Player with name: " + playerName + " left game " + game.getGameId());
         game.removePlayer(playerName);
         return game.getAllPlayers();
     }
@@ -125,6 +128,7 @@ public class GameService {
         if (game == null) {
             throw new GameException(GameException.GAME_NOT_FOUND);
         }
+        logger.info("Players from game " + game.getGameId() + " retrieved");
         return game.getAllPlayers();
     }
 
@@ -136,6 +140,7 @@ public class GameService {
         if (game == null) {
             throw new GameException(GameException.GAME_NOT_FOUND);
         }
+        logger.info("Game started id: " + game.getGameId());
         return game.startGame();
     }
 
@@ -145,7 +150,7 @@ public class GameService {
         }
         Game game = games.get(gameId);
         if (game == null) {
-           throw new GameException(GameException.GAME_NOT_FOUND);
+            throw new GameException(GameException.GAME_NOT_FOUND);
         }
         if (movement.getPlayer() == null) {
             throw new GameException(GameException.NOT_EMPTY_PLAYER);
@@ -153,5 +158,4 @@ public class GameService {
         game.makeAMove(movement.getPlayer(), movement.getDx(), movement.getDy());
     }
 
-    
 }
