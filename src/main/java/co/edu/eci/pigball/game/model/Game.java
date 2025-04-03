@@ -36,7 +36,7 @@ public class Game implements Runnable {
     private ConcurrentHashMap<String, Player> players;
     private Ball ball;
 
-    private static final int VELOCITY = 2;
+    private static final int VELOCITY = 3;
     private static final double FRAME_RATE = 60;
 
     public Game(String gameName, String creatorName, int maxPlayers, boolean privateGame,
