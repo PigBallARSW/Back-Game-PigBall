@@ -34,8 +34,9 @@ public class Game implements Runnable {
     private int borderY;
     private Pair<Team, Team> teams;
     private ConcurrentHashMap<String, Player> players;
+    private Ball ball;
 
-    private static final int VELOCITY = 5;
+    private static final int VELOCITY = 2;
     private static final double FRAME_RATE = 60;
 
     public Game(String gameName, String creatorName, int maxPlayers, boolean privateGame,
@@ -52,6 +53,7 @@ public class Game implements Runnable {
         this.borderY = 900;
         this.teams = new Pair<>(new Team(), new Team());
         this.players = new ConcurrentHashMap<>();
+        this.ball = new Ball(this.borderX / 2, this.borderY / 2, 0, 0);
     }
 
     public void setIdForTest(String id) {
@@ -71,14 +73,7 @@ public class Game implements Runnable {
         }
     }
 
-    public void broadcastGameState() {
-        try {
-            messagingTemplate.convertAndSend("/topic/play/" + gameId, GameDTO.toDTO(this));
-        } catch (Exception e) {
-            logger.error("Error al enviar el estado del juego");
-        }
-    }
-
+    
     public void addPlayer(Player player) throws GameException {
         validatePlayerTeam(player);
         validateMaxPlayers();
@@ -89,6 +84,12 @@ public class Game implements Runnable {
             }
             return handleNewPlayer(player);
         });
+
+        if (players.size() == maxPlayers && status == GameStatus.WAITING_FOR_PLAYERS) {
+            status = GameStatus.WAITING_FULL;
+        } else if (players.size() == maxPlayers && status == GameStatus.IN_PROGRESS) {
+            status = GameStatus.IN_PROGRESS_FULL;
+        }
     }
 
     private void validatePlayerTeam(Player player) throws GameException {
@@ -104,7 +105,8 @@ public class Game implements Runnable {
     }
 
     private Player handleExistingPlayer(Player player, Player existingPlayer) {
-        player.setPosition(borderX, borderY, existingPlayer.getX(), existingPlayer.getY());
+        Pair<Double, Double> coordinates = new Pair<>(existingPlayer.getX(), existingPlayer.getY());
+        player.setPosition(borderX, borderY, coordinates, new ArrayList<>());
 
         if (player.getTeam() == null) {
             player.setTeam(existingPlayer.getTeam());
@@ -116,10 +118,10 @@ public class Game implements Runnable {
 
     private Player handleNewPlayer(Player player) {
         SecureRandom random = new SecureRandom();
-        int newX = random.nextInt(borderX - 40) + 20;
-        int newY = random.nextInt(borderY - 40) + 20;
-
-        player.setPosition(borderX, borderY, newX, newY);
+        double newX = random.nextDouble(borderX - 40) + 20;
+        double newY = random.nextDouble(borderY - 40) + 20;
+        Pair<Double, Double> coordinates = new Pair<>(newX, newY);
+        player.setPosition(borderX, borderY, coordinates, new ArrayList<>());
 
         if (player.getTeam() == null) {
             assignTeam(player);
@@ -148,11 +150,18 @@ public class Game implements Runnable {
     }
 
     public void removePlayer(Player player) {
-        players.remove(player.getName());
+        removePlayer(player.getName());
     }
 
     public void removePlayer(String playerName) {
         players.remove(playerName);
+        if (players.size() == 0) {
+            status = GameStatus.ABANDONED;
+        } else if (players.size() == maxPlayers - 1 && status == GameStatus.WAITING_FOR_PLAYERS) {
+            status = GameStatus.WAITING_FOR_PLAYERS;
+        } else if (players.size() == maxPlayers - 1 && status == GameStatus.IN_PROGRESS) {
+            status = GameStatus.IN_PROGRESS;
+        }
     }
 
     public List<Player> getAllPlayers() {
@@ -165,14 +174,22 @@ public class Game implements Runnable {
         int ubicatedPlayersTeamTwo = 0;
         for (Player player : players.values()) {
             if (player.getTeam() == 0) {
-                int x = ubicatedPlayersTeamOne % 2 == 0 ? 5 : 0;
-                int y = (((borderY - 40) / (maxPlayers / 2)) * ubicatedPlayersTeamOne) + 5;
-                player.setPosition(borderX, borderY, x, y);
+                double base_x = 3 * Player.RADIUS;
+                double base_y = 3 * Player.RADIUS;
+                double x = ubicatedPlayersTeamOne % 2 == 0 ? base_x : base_x + (3 * Player.RADIUS);
+                double y = (((borderY - (2 * base_y)) / ((maxPlayers / 2) - 1)) * ubicatedPlayersTeamOne) + base_y;
+                logger.info("Player team 0: " + player.getName() + " set to position " + x + ", " + y);
+                Pair<Double, Double> coordinates = new Pair<>(x, y);
+                player.setPosition(borderX, borderY, coordinates, new ArrayList<>());
                 ubicatedPlayersTeamOne++;
             } else {
-                int x = ubicatedPlayersTeamTwo % 2 == 0 ? borderX - 40 : borderX - 5;
-                int y = (((borderY - 40) / (maxPlayers / 2)) * ubicatedPlayersTeamTwo) + 5;
-                player.setPosition(borderX, borderY, x, y);
+                double base_x = borderX - (3 * Player.RADIUS);
+                double base_y = 3 * Player.RADIUS;
+                double x = ubicatedPlayersTeamTwo % 2 == 0 ? base_x : base_x - (3 * Player.RADIUS);
+                double y = (((borderY - (2 * base_y)) / ((maxPlayers / 2) - 1)) * ubicatedPlayersTeamTwo) + base_y;
+                logger.info("Player team 1: " + player.getName() + " set to position " + x + ", " + y);
+                Pair<Double, Double> coordinates = new Pair<>(x, y);
+                player.setPosition(borderX, borderY, coordinates, new ArrayList<>());
                 ubicatedPlayersTeamTwo++;
             }
         }
@@ -185,6 +202,15 @@ public class Game implements Runnable {
             throw new GameException(GameException.GAME_START_INTERRUPTED);
         }
         return GameDTO.toDTO(this);
+    }
+    
+    public void broadcastGameState() {
+        try {
+            makeABallMove();
+            messagingTemplate.convertAndSend("/topic/play/" + gameId, GameDTO.toDTO(this));
+        } catch (Exception e) {
+            logger.error("Error al enviar el estado del juego");
+        }
     }
 
     public void makeAMove(String name, int dx, int dy) {
@@ -207,8 +233,23 @@ public class Game implements Runnable {
         // Uso de Delta Time
         double dt = 100.0 / FRAME_RATE; // Delta Time basado en el framerate
         double adjustedVelocity = VELOCITY * dt;
-        player.move(borderX, borderY, (int) (fdx * adjustedVelocity), (int) (fdy * adjustedVelocity),
-                new ArrayList<>(players.values()));
+        Pair<Double, Double> movement = new Pair<>(fdx * adjustedVelocity, fdy * adjustedVelocity);
+        player.move(borderX, borderY, movement, new ArrayList<>(players.values()));
     }
 
+    public void makeABallMove() {
+        // dt en segundos (FRAME_RATE es frames por segundo)
+        double dt = 1.0 / FRAME_RATE;  
+        // Coeficiente de fricción (ajústalo según la sensación que busques)
+        double frictionCoefficient = 0.8;  
+        // Obtener velocidades actuales de la pelota
+        double ballVelocityX = ball.getVelocityX();
+        double ballVelocityY = ball.getVelocityY();
+        // Calcular el factor de fricción para este frame
+        double frictionFactor = 1 - frictionCoefficient * dt;
+        // Aplicar la fricción a las velocidades
+        ball.setVelocity(ballVelocityX * frictionFactor, ballVelocityY * frictionFactor);
+        // Mover la pelota usando la velocidad actualizada y dt para un desplazamiento correcto
+        ball.move(borderX, borderY, new Pair<>(ball.getVelocityX() * dt, ball.getVelocityY() * dt), new ArrayList<>(players.values()));
+    }
 }

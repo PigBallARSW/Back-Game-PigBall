@@ -2,8 +2,10 @@ package co.edu.eci.pigball.game.model;
 
 public enum GameStatus {
     WAITING_FOR_PLAYERS, // Esperando jugadores
+    WAITING_FULL, // Esperando a empezar con el juego lleno
     STARTING, // Juego en proceso de inicio
     IN_PROGRESS, // Juego en curso
+    IN_PROGRESS_FULL, // Juego en curso lleno
     FINISHED, // Juego terminado
     ABANDONED; // Juego abandonado
 
