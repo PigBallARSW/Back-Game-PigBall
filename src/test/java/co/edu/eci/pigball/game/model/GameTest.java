@@ -2,12 +2,14 @@ package co.edu.eci.pigball.game.model;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import co.edu.eci.pigball.game.exception.GameException;
+import co.edu.eci.pigball.game.java.Pair;
 import co.edu.eci.pigball.game.model.dto.GameDTO;
 
 class GameTest {
@@ -36,7 +38,7 @@ class GameTest {
         }
         assertEquals(1, game.getAllPlayers().size());
         assertTrue(game.getAllPlayers().contains(player1));
-        player1.setPosition(game.getBorderX(), game.getBorderY(), 20, 20);
+        player1.setPosition(game.getBorderX(), game.getBorderY(), new Pair<Double,Double>(20.0, 20.0), new ArrayList<>(game.getAllPlayers()));
         assertEquals(20, player1.getX());
     }
 
@@ -80,8 +82,8 @@ class GameTest {
             fail("Exception should not be thrown when adding players or starting game: " + e.getMessage());
         }
         // Store initial position
-        int initialX = player1.getX();
-        int initialY = player1.getY();
+        double initialX = player1.getX();
+        double initialY = player1.getY();
 
         game.makeAMove("player1", 2, 3);
         // Check that the player moved in the correct direction
@@ -98,8 +100,8 @@ class GameTest {
             fail("Exception should not be thrown when adding players or starting game: " + e.getMessage());
         }
         // Store initial position
-        int initialX = player1.getX();
-        int initialY = player1.getY();
+        double initialX = player1.getX();
+        double initialY = player1.getY();
         game.makeAMove("player1", 1, 1);
         Player movedPlayer = game.getPlayers().get("player1");
         assertNotNull(movedPlayer);
@@ -115,9 +117,9 @@ class GameTest {
         } catch (GameException e) {
             fail("Exception should not be thrown when adding a player: " + e.getMessage());
         }
-        int initialX = player1.getX();
-        int initialY = player1.getY();
-        player1.move(game.getBorderX(), game.getBorderY(), 5, -5);
+        double initialX = player1.getX();
+        double initialY = player1.getY();
+        player1.move(game.getBorderX(), game.getBorderY(), new Pair<Double,Double>(5.0, -5.0), new ArrayList<>(game.getAllPlayers()));
         assertEquals(initialX + 5, player1.getX());
         assertEquals(initialY - 5, player1.getY());
     }
@@ -232,13 +234,12 @@ class GameTest {
         } catch (GameException e) {
             fail("Exception should not be thrown when adding a player: " + e.getMessage());
         }
-
         // Test movement beyond borders
-        player1.move(game.getBorderX(), game.getBorderY(), game.getBorderX() + 100, game.getBorderY() + 100);
+        player1.move(game.getBorderX(), game.getBorderY(), new Pair<>(game.getBorderX() + 100.0, game.getBorderY() + 100.0), new ArrayList<>(game.getAllPlayers()));
         assertTrue(player1.getX() <= game.getBorderX());
         assertTrue(player1.getY() <= game.getBorderY());
 
-        player1.move(game.getBorderX(), game.getBorderY(), -100, -100);
+        player1.move(game.getBorderX(), game.getBorderY(), new Pair<>(-100.0, -100.0), new ArrayList<>(game.getAllPlayers()));
         assertTrue(player1.getX() >= 0);
         assertTrue(player1.getY() >= 0);
     }
@@ -247,7 +248,7 @@ class GameTest {
     void testPlayerReconnection() {
         try {
             game.addPlayer(player1);
-            player1.setPosition(game.getBorderX(), game.getBorderY(), 20, 20);
+            player1.setPosition(game.getBorderX(), game.getBorderY(), new Pair<Double,Double>(20.0, 20.0), new ArrayList<>(game.getAllPlayers()));
             game.addPlayer(player1); // Reconnect same player
         } catch (GameException e) {
             fail("Exception should not be thrown when reconnecting player: " + e.getMessage());
