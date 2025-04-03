@@ -25,7 +25,7 @@ public class GameService {
     public GameService(SimpMessagingTemplate messagingTemplate) {
         this.messagingTemplate = messagingTemplate;
         this.games = new ConcurrentHashMap<>();
-        Game game = new Game("Game 1", "Creator 1", 6, false, messagingTemplate);
+        Game game = new Game("Game 1", "Creator 1", 2, false, messagingTemplate);
         game.setIdForTest("1");
         games.put(game.getGameId(), game);
         Thread gameThread = new Thread(game);
