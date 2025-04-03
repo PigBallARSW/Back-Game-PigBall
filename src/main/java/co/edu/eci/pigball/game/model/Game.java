@@ -177,7 +177,12 @@ public class Game implements Runnable {
                 double base_x = 3 * Player.RADIUS;
                 double base_y = 3 * Player.RADIUS;
                 double x = ubicatedPlayersTeamOne % 2 == 0 ? base_x : base_x + (3 * Player.RADIUS);
-                double y = (((borderY - (2 * base_y)) / ((maxPlayers / 2) - 1)) * ubicatedPlayersTeamOne) + base_y;
+                double y = 0;
+                if( maxPlayers == 2) {  
+                    y = borderY / 2;
+                } else {
+                    y = (((borderY - (2 * base_y)) / ((maxPlayers / 2) - 1)) * ubicatedPlayersTeamOne) + base_y;
+                }
                 logger.info("Player team 0: " + player.getName() + " set to position " + x + ", " + y);
                 Pair<Double, Double> coordinates = new Pair<>(x, y);
                 player.setPosition(borderX, borderY, coordinates, new ArrayList<>());
@@ -186,7 +191,12 @@ public class Game implements Runnable {
                 double base_x = borderX - (3 * Player.RADIUS);
                 double base_y = 3 * Player.RADIUS;
                 double x = ubicatedPlayersTeamTwo % 2 == 0 ? base_x : base_x - (3 * Player.RADIUS);
-                double y = (((borderY - (2 * base_y)) / ((maxPlayers / 2) - 1)) * ubicatedPlayersTeamTwo) + base_y;
+                double y = 0;
+                if( maxPlayers == 2) {  
+                    y = borderY / 2;
+                } else {
+                    y = (((borderY - (2 * base_y)) / ((maxPlayers / 2) - 1)) * ubicatedPlayersTeamTwo) + base_y;
+                }
                 logger.info("Player team 1: " + player.getName() + " set to position " + x + ", " + y);
                 Pair<Double, Double> coordinates = new Pair<>(x, y);
                 player.setPosition(borderX, borderY, coordinates, new ArrayList<>());
