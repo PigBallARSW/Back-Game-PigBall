@@ -6,7 +6,7 @@ import co.edu.eci.pigball.game.java.Pair;
 
 public class Ball extends Entity {
 
-    public static final int RADIUS = 20;
+    public static final double RADIUS = 20.0;
     // Variables para almacenar la dirección de movimiento
     private double velocityX = 0;
     private double velocityY = 0;
