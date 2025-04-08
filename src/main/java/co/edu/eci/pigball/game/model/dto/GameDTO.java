@@ -27,6 +27,7 @@ public class GameDTO {
     private int borderX;
     private int borderY;
     private List<PlayerDTO> players;
+    private BallDTO ball;
 
     public GameDTO(Game game) {
         this.id = game.getGameId();
@@ -40,6 +41,7 @@ public class GameDTO {
         this.borderY = game.getBorderY();
         Collection<PlayerDTO> playersDTO = PlayerDTO.toDTO(game.getPlayers().values());
         this.players = (List<PlayerDTO>) playersDTO;
+        this.ball = new BallDTO(game.getBall().getX(), game.getBall().getY(), game.getBall().getVelocityX(), game.getBall().getVelocityY());
     }
 
     public int getMaxPlayers() {
