@@ -278,6 +278,7 @@ public class Game implements Runnable, GameObserver {
         }
 
         try {
+            messagingTemplate.convertAndSend("/topic/goal/" + gameId, GameDTO.toDTO(this));
             ubicatePlayersAndBallInTheField();
             Thread.sleep(3000);
             this.ball.setLastGoalTeam(-1);

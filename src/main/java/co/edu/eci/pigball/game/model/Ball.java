@@ -79,7 +79,7 @@ public class Ball extends Entity {
                 double magnitude = Math.sqrt(velocityX * velocityX + velocityY * velocityY);
                 if (magnitude < 1) {
                     // Si la pelota está en reposo, darle un impulso inicial
-                    magnitude = 150.0;
+                    magnitude = 200.0;
                 }
                 magnitude *= collisionPlayerBoost;
 
