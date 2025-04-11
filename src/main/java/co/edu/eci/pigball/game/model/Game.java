@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Getter
-public class Game implements Runnable {
+public class Game implements Runnable, GameObserver {
 
     private static final Logger logger = LoggerFactory.getLogger(Game.class);
 
@@ -54,6 +54,7 @@ public class Game implements Runnable {
         this.teams = new Pair<>(new Team(), new Team());
         this.players = new ConcurrentHashMap<>();
         this.ball = new Ball(this.borderX / 2, this.borderY / 2, 0, 0);
+        this.ball.addObserver(this);
     }
 
     public void setIdForTest(String id) {
@@ -170,6 +171,20 @@ public class Game implements Runnable {
 
     public GameDTO startGame() throws GameException {
         status = GameStatus.STARTING;
+        ubicatePlayersAndBallInTheField();
+        try {
+            Thread.sleep(5000);
+            status = GameStatus.IN_PROGRESS;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new GameException(GameException.GAME_START_INTERRUPTED);
+        }
+        return GameDTO.toDTO(this);
+    }
+
+    private void ubicatePlayersAndBallInTheField() {
+        this.ball.setVelocity(0, 0);
+        this.ball.setPosition(borderX, borderY, new Pair<>(borderX / 2.0, borderY / 2.0), new ArrayList<>());
         int ubicatedPlayersTeamOne = 0;
         int ubicatedPlayersTeamTwo = 0;
         for (Player player : players.values()) {
@@ -203,15 +218,6 @@ public class Game implements Runnable {
                 ubicatedPlayersTeamTwo++;
             }
         }
-
-        try {
-            Thread.sleep(5000);
-            status = GameStatus.IN_PROGRESS;
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new GameException(GameException.GAME_START_INTERRUPTED);
-        }
-        return GameDTO.toDTO(this);
     }
     
     public void broadcastGameState() {
@@ -261,5 +267,22 @@ public class Game implements Runnable {
         ball.setVelocity(ballVelocityX * frictionFactor, ballVelocityY * frictionFactor);
         // Mover la pelota usando la velocidad actualizada y dt para un desplazamiento correcto
         ball.move(borderX, borderY, new Pair<>(ball.getVelocityX() * dt, ball.getVelocityY() * dt), new ArrayList<>(players.values()));
+    }
+
+    @Override
+    public void onGoalScored(int team) {
+        if (team == 0) {
+            teams.getFirst().increaseScore();
+        } else {
+            teams.getSecond().increaseScore();
+        }
+
+        try {
+            ubicatePlayersAndBallInTheField();
+            Thread.sleep(3000);
+            this.ball.setLastGoalTeam(-1);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 }
