@@ -77,7 +77,7 @@ public class Game implements Runnable, GameObserver {
 
             actualTime = Instant.now();
 
-            if (startTime != null && actualTime.isAfter(startTime.plusSeconds(60))) {
+            if (startTime != null && actualTime.isAfter(startTime.plusSeconds(300))) {
                 status = GameStatus.FINISHED;
                 try {
                     messagingTemplate.convertAndSend("/topic/finished/" + gameId, GameDTO.toDTO(this));
