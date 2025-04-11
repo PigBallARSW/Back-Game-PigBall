@@ -25,6 +25,7 @@ public class GameDTO {
     private GameStatus status;
     private Boolean privateGame;
     private Instant creationTime;
+    private Instant startTime;
     private int borderX;
     private int borderY;
     private List<PlayerDTO> players;
@@ -39,6 +40,7 @@ public class GameDTO {
         this.status = game.getStatus();
         this.privateGame = game.isPrivateGame();
         this.creationTime = game.getCreationTime();
+        this.startTime = game.getStartTime();
         this.borderX = game.getBorderX();
         this.borderY = game.getBorderY();
         Collection<PlayerDTO> playersDTO = PlayerDTO.toDTO(game.getPlayers().values());

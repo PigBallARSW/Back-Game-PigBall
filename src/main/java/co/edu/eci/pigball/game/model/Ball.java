@@ -79,7 +79,7 @@ public class Ball extends Entity {
                 double magnitude = Math.sqrt(velocityX * velocityX + velocityY * velocityY);
                 if (magnitude < 1) {
                     // Si la pelota está en reposo, darle un impulso inicial
-                    magnitude = 200.0;
+                    magnitude = 1000.0;
                 }
                 magnitude *= collisionPlayerBoost;
 
@@ -88,6 +88,14 @@ public class Ball extends Entity {
                 velocityX = Math.cos(angle) * magnitude;
                 velocityY = Math.sin(angle) * magnitude;
 
+                // Validar que la magnitud no exceda el límite
+                double maxMagnitude = 2000.0;
+                double actualMagnitude = Math.sqrt(velocityX * velocityX + velocityY * velocityY);
+                if (actualMagnitude > maxMagnitude) {
+                    double scale = maxMagnitude / actualMagnitude;
+                    velocityX *= scale;
+                    velocityY *= scale;
+                }
                 // Actualizar posición para evitar solapamiento con el jugador
                 newX = playerX + (Math.cos(angle) * (RADIUS + Player.RADIUS));
                 newY = playerY + (Math.sin(angle) * (RADIUS + Player.RADIUS));
@@ -130,6 +138,15 @@ public class Ball extends Entity {
                 newY = borderY - RADIUS;
                 velocityY = -velocityY * collisionWallBoost;
             }
+            // Validar la magnitud de la velocidad
+            double maxMagnitude = 2000.0;
+            double actualMagnitude = Math.sqrt(velocityX * velocityX + velocityY * velocityY);
+            if (actualMagnitude > maxMagnitude) {
+                double scale = maxMagnitude / actualMagnitude;
+                velocityX *= scale;
+                velocityY *= scale;
+            }
+
             newX = Math.max(RADIUS, Math.min(borderX - RADIUS, newX));
             newY = Math.max(RADIUS, Math.min(borderY - RADIUS, newY));
         }

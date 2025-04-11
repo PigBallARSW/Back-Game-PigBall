@@ -10,7 +10,7 @@ public class Player extends Entity {
     private String name;
     private String sessionId;
     private Integer team;
-    public static final double RADIUS = 20.0;
+    public static final double RADIUS = 30.0;
 
     public Player(String name, String sessionId, int x, int y) {
         super(x, y);
