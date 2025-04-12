@@ -1,6 +1,7 @@
 package co.edu.eci.pigball.game.model;
 
 import java.util.List;
+import java.util.ArrayList;
 
 import co.edu.eci.pigball.game.java.Pair;
 
@@ -10,11 +11,31 @@ public class Ball extends Entity {
     // Variables para almacenar la dirección de movimiento
     private double velocityX = 0;
     private double velocityY = 0;
+    private List<GameObserver> observers;
+    private int lastGoalTeam = -1;
 
     public Ball(int x, int y, int velocityX, int velocityY) {
         super(x, y);
         this.velocityX = velocityX;
         this.velocityY = velocityY;
+        this.observers = new ArrayList<>();
+    }
+
+    public void addObserver(GameObserver observer) {
+        observers.add(observer);
+    }
+
+    public void removeObserver(GameObserver observer) {
+        observers.remove(observer);
+    }
+
+    private void notifyGoalScored(int team) {
+        if (team != lastGoalTeam) { // Prevent multiple notifications for the same goal
+            lastGoalTeam = team;
+            for (GameObserver observer : observers) {
+                observer.onGoalScored(team);
+            }
+        }
     }
 
     @Override
@@ -38,7 +59,6 @@ public class Ball extends Entity {
             List<Player> players) {
         double newX = coordinates.getFirst();
         double newY = coordinates.getSecond();
-        // Factor de aumento al rebotar
         double collisionPlayerBoost = 1.3;
         double collisionWallBoost = 0.9;
 
@@ -57,9 +77,9 @@ public class Ball extends Entity {
 
                 // Calcular la magnitud actual y aumentar la velocidad
                 double magnitude = Math.sqrt(velocityX * velocityX + velocityY * velocityY);
-                if (magnitude < 0.2) {
+                if (magnitude < 1) {
                     // Si la pelota está en reposo, darle un impulso inicial
-                    magnitude = 15.0;
+                    magnitude = 1000.0;
                 }
                 magnitude *= collisionPlayerBoost;
 
@@ -68,35 +88,68 @@ public class Ball extends Entity {
                 velocityX = Math.cos(angle) * magnitude;
                 velocityY = Math.sin(angle) * magnitude;
 
+                // Validar que la magnitud no exceda el límite
+                double maxMagnitude = 2000.0;
+                double actualMagnitude = Math.sqrt(velocityX * velocityX + velocityY * velocityY);
+                if (actualMagnitude > maxMagnitude) {
+                    double scale = maxMagnitude / actualMagnitude;
+                    velocityX *= scale;
+                    velocityY *= scale;
+                }
                 // Actualizar posición para evitar solapamiento con el jugador
                 newX = playerX + (Math.cos(angle) * (RADIUS + Player.RADIUS));
                 newY = playerY + (Math.sin(angle) * (RADIUS + Player.RADIUS));
                 break; // Solo consideramos la primera colisión
             }
         }
-
-        // Verificar colisiones con paredes (límites del campo)
-        // Colisión con pared izquierda o derecha
-        if (newX - RADIUS <= 0) {
-            newX = RADIUS;
-            velocityX = -velocityX * collisionWallBoost;
-        } else if (newX + RADIUS >= borderX) {
-            newX = borderX - RADIUS;
-            velocityX = -velocityX * collisionWallBoost;
+        int middleY = borderY / 2;
+        boolean isInXRange = newX - RADIUS <= 0 || newX + RADIUS >= borderX;
+        boolean isInYRange = (newY - RADIUS > middleY - (borderY * 0.09)) && (newY + RADIUS < middleY + (borderY * 0.09));
+        if (isInXRange && isInYRange) {
+            if (newX - RADIUS < -2 * RADIUS) {
+                newX = borderX / 2;
+                newY = borderY / 2;
+                notifyGoalScored(0);
+            }
+            else if (newX + RADIUS > borderX + 2 * RADIUS) {
+                newX = borderX / 2;
+                newY = borderY / 2;
+                notifyGoalScored(1);
+            }
+            else {
+            }
         }
+        else {
+            // Verificar colisiones con paredes (límites del campo)
+            // Colisión con pared izquierda o derecha
+            if (newX - RADIUS <= 0) {
+                newX = RADIUS;
+                velocityX = -velocityX * collisionWallBoost;
+            } else if (newX + RADIUS >= borderX) {
+                newX = borderX - RADIUS;
+                velocityX = -velocityX * collisionWallBoost;
+            }
 
-        // Colisión con pared superior o inferior
-        if (newY - RADIUS <= 0) {
-            newY = RADIUS;
-            velocityY = -velocityY * collisionWallBoost;
-        } else if (newY + RADIUS >= borderY) {
-            newY = borderY - RADIUS;
-            velocityY = -velocityY * collisionWallBoost;
+            // Colisión con pared superior o inferior
+            if (newY - RADIUS <= 0) {
+                newY = RADIUS;
+                velocityY = -velocityY * collisionWallBoost;
+            } else if (newY + RADIUS >= borderY) {
+                newY = borderY - RADIUS;
+                velocityY = -velocityY * collisionWallBoost;
+            }
+            // Validar la magnitud de la velocidad
+            double maxMagnitude = 2000.0;
+            double actualMagnitude = Math.sqrt(velocityX * velocityX + velocityY * velocityY);
+            if (actualMagnitude > maxMagnitude) {
+                double scale = maxMagnitude / actualMagnitude;
+                velocityX *= scale;
+                velocityY *= scale;
+            }
+
+            newX = Math.max(RADIUS, Math.min(borderX - RADIUS, newX));
+            newY = Math.max(RADIUS, Math.min(borderY - RADIUS, newY));
         }
-
-        // Asegurarse de que la posición esté dentro de los límites
-        newX = Math.max(RADIUS, Math.min(borderX - RADIUS, newX));
-        newY = Math.max(RADIUS, Math.min(borderY - RADIUS, newY));
 
         return new Pair<>(newX, newY);
     }
@@ -112,5 +165,9 @@ public class Ball extends Entity {
     public void setVelocity(double velocityX, double velocityY) {
         this.velocityX = velocityX;
         this.velocityY = velocityY;
+    }
+
+    public void setLastGoalTeam(int lastGoalTeam) {
+        this.lastGoalTeam = lastGoalTeam;
     }
 }

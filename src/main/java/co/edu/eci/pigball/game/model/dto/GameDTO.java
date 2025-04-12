@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 
+import co.edu.eci.pigball.game.java.Pair;
 import co.edu.eci.pigball.game.model.Game;
 import co.edu.eci.pigball.game.model.GameStatus;
 import lombok.AllArgsConstructor;
@@ -24,10 +25,12 @@ public class GameDTO {
     private GameStatus status;
     private Boolean privateGame;
     private Instant creationTime;
+    private Instant startTime;
     private int borderX;
     private int borderY;
     private List<PlayerDTO> players;
     private BallDTO ball;
+    private Pair<Integer, Integer> teams;
 
     public GameDTO(Game game) {
         this.id = game.getGameId();
@@ -37,11 +40,13 @@ public class GameDTO {
         this.status = game.getStatus();
         this.privateGame = game.isPrivateGame();
         this.creationTime = game.getCreationTime();
+        this.startTime = game.getStartTime();
         this.borderX = game.getBorderX();
         this.borderY = game.getBorderY();
         Collection<PlayerDTO> playersDTO = PlayerDTO.toDTO(game.getPlayers().values());
         this.players = (List<PlayerDTO>) playersDTO;
         this.ball = new BallDTO(game.getBall().getX(), game.getBall().getY(), game.getBall().getVelocityX(), game.getBall().getVelocityY());
+        this.teams = new Pair<>(game.getTeams().getFirst().getScore(), game.getTeams().getSecond().getScore());
     }
 
     public int getMaxPlayers() {

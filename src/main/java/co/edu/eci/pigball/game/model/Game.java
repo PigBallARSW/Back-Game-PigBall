@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Getter
-public class Game implements Runnable {
+public class Game implements Runnable, GameObserver {
 
     private static final Logger logger = LoggerFactory.getLogger(Game.class);
 
@@ -30,6 +30,7 @@ public class Game implements Runnable {
     private GameStatus status;
     private boolean privateGame;
     private Instant creationTime;
+    private Instant startTime;
     private int borderX;
     private int borderY;
     private Pair<Team, Team> teams;
@@ -48,12 +49,14 @@ public class Game implements Runnable {
         this.status = GameStatus.WAITING_FOR_PLAYERS;
         this.privateGame = privateGame;
         this.creationTime = Instant.now();
+        this.startTime = null;
         this.messagingTemplate = messagingTemplate;
         this.borderX = 1200;
         this.borderY = 900;
         this.teams = new Pair<>(new Team(), new Team());
         this.players = new ConcurrentHashMap<>();
         this.ball = new Ball(this.borderX / 2, this.borderY / 2, 0, 0);
+        this.ball.addObserver(this);
     }
 
     public void setIdForTest(String id) {
@@ -62,6 +65,7 @@ public class Game implements Runnable {
 
     @Override
     public void run() {
+        Instant actualTime = Instant.now();
         while (status != GameStatus.FINISHED && status != GameStatus.ABANDONED) {
             try {
                 broadcastGameState();
@@ -69,6 +73,27 @@ public class Game implements Runnable {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 break;
+            }
+
+            actualTime = Instant.now();
+
+            if (startTime != null && actualTime.isAfter(startTime.plusSeconds(300))) {
+                status = GameStatus.FINISHED;
+                try {
+                    messagingTemplate.convertAndSend("/topic/finished/" + gameId, GameDTO.toDTO(this));
+                    logger.info("La partida con id " + gameId + " ha terminado.");
+                } catch (Exception e) {
+                    logger.error("Error al enviar el estado del juego");
+                }
+            }
+            else if (creationTime.plusSeconds(1800).isBefore(actualTime) && status == GameStatus.WAITING_FOR_PLAYERS) {
+                status = GameStatus.ABANDONED;
+                try {
+                    messagingTemplate.convertAndSend("/topic/abandoned/" + gameId, GameDTO.toDTO(this));
+                    logger.info("La partida con id " + gameId + " ha sido abandonada por inactividad.");
+                } catch (Exception e) {
+                    logger.error("Error al enviar el estado del juego");
+                }
             }
         }
     }
@@ -169,7 +194,24 @@ public class Game implements Runnable {
     }
 
     public GameDTO startGame() throws GameException {
+        
         status = GameStatus.STARTING;
+        ubicatePlayersAndBallInTheField();
+        try {
+            Thread.sleep(5000);
+            status = GameStatus.IN_PROGRESS;
+            startTime = Instant.now();
+            logger.info("La partida con id " + gameId + " ha comenzado.");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new GameException(GameException.GAME_START_INTERRUPTED);
+        }
+        return GameDTO.toDTO(this);
+    }
+
+    private void ubicatePlayersAndBallInTheField() {
+        this.ball.setVelocity(0, 0);
+        this.ball.setPosition(borderX, borderY, new Pair<>(borderX / 2.0, borderY / 2.0), new ArrayList<>());
         int ubicatedPlayersTeamOne = 0;
         int ubicatedPlayersTeamTwo = 0;
         for (Player player : players.values()) {
@@ -203,15 +245,6 @@ public class Game implements Runnable {
                 ubicatedPlayersTeamTwo++;
             }
         }
-
-        try {
-            Thread.sleep(5000);
-            status = GameStatus.IN_PROGRESS;
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new GameException(GameException.GAME_START_INTERRUPTED);
-        }
-        return GameDTO.toDTO(this);
     }
     
     public void broadcastGameState() {
@@ -251,7 +284,7 @@ public class Game implements Runnable {
         // dt en segundos (FRAME_RATE es frames por segundo)
         double dt = 1.0 / FRAME_RATE;  
         // Coeficiente de fricción (ajústalo según la sensación que busques)
-        double frictionCoefficient = 0.8;  
+        double frictionCoefficient = 1.8;  
         // Obtener velocidades actuales de la pelota
         double ballVelocityX = ball.getVelocityX();
         double ballVelocityY = ball.getVelocityY();
@@ -261,5 +294,23 @@ public class Game implements Runnable {
         ball.setVelocity(ballVelocityX * frictionFactor, ballVelocityY * frictionFactor);
         // Mover la pelota usando la velocidad actualizada y dt para un desplazamiento correcto
         ball.move(borderX, borderY, new Pair<>(ball.getVelocityX() * dt, ball.getVelocityY() * dt), new ArrayList<>(players.values()));
+    }
+
+    @Override
+    public void onGoalScored(int team) {
+        if (team == 0) {
+            teams.getFirst().increaseScore();
+        } else {
+            teams.getSecond().increaseScore();
+        }
+
+        try {
+            messagingTemplate.convertAndSend("/topic/goal/" + gameId, GameDTO.toDTO(this));
+            ubicatePlayersAndBallInTheField();
+            Thread.sleep(100);
+            this.ball.setLastGoalTeam(-1);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 }

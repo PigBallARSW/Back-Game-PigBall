@@ -10,7 +10,7 @@ public class Player extends Entity {
     private String name;
     private String sessionId;
     private Integer team;
-    public static final double RADIUS = 20.0;
+    public static final double RADIUS = 30.0;
 
     public Player(String name, String sessionId, int x, int y) {
         super(x, y);
@@ -59,16 +59,33 @@ public class Player extends Entity {
                 }
             }
         }
-
-        // Check if the player is colliding with the walls
-        Pair<Double, Double> validatedCoordinates = new Pair<>(super.getX(), super.getY());
-        double minX = RADIUS;
-        double maxX = borderX - RADIUS;
-        validatedCoordinates.setFirst(Math.clamp(newX, minX, maxX));
-        double minY = RADIUS;
-        double maxY = borderY - RADIUS;
-        validatedCoordinates.setSecond(Math.clamp(newY, minY, maxY));
-
+        int middleY = borderY / 2;
+        boolean isInXRange = newX - RADIUS <= 0 || newX + RADIUS >= borderX;
+        boolean isInYRange = (newY - RADIUS > middleY - (borderY * 0.09)) && (newY + RADIUS < middleY + (borderY * 0.09));
+        Pair<Double, Double> validatedCoordinates;
+        if (isInXRange && isInYRange) {
+            if (newX - RADIUS < - 2 * RADIUS) {
+                double minNewX = Math.max(newX, - RADIUS);
+                validatedCoordinates = new Pair<>(minNewX, newY);
+            }
+            else if (newX + RADIUS > borderX + 2 * RADIUS) {
+                double maxNewX = Math.min(newX, borderX + RADIUS);
+                validatedCoordinates = new Pair<>(maxNewX, newY);
+            }
+            else {
+                validatedCoordinates = new Pair<>(newX, newY);
+            }
+        }
+        else {
+            // Check if the player is colliding with the walls
+            validatedCoordinates = new Pair<>(super.getX(), super.getY());
+            double minX = RADIUS;
+            double maxX = borderX - RADIUS;
+            validatedCoordinates.setFirst(Math.clamp(newX, minX, maxX));
+            double minY = RADIUS;
+            double maxY = borderY - RADIUS;
+            validatedCoordinates.setSecond(Math.clamp(newY, minY, maxY));    
+        }
         return validatedCoordinates;
     }
 }
