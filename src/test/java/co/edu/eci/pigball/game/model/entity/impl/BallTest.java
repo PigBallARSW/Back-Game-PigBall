@@ -17,7 +17,7 @@ class BallTest {
     private Ball ball;
     private static final int BORDER_X = 1200;
     private static final int BORDER_Y = 900;
-    private static final double BALL_RADIUS = 20.0;
+    private static final double BALL_RADIUS = 10.0;
     private static final int INITIAL_VELOCITY_X = 100;
     private static final int INITIAL_VELOCITY_Y = 100;
 
@@ -58,7 +58,7 @@ class BallTest {
 
     @Test
     void testMoveWithCollision() {
-        Player player = new Player("TestPlayer", "session123", BORDER_X / 2, BORDER_Y / 2 + 25, 30.0);
+        Player player = new Player("TestPlayer", "session123", BORDER_X / 2, BORDER_Y / 2 + 25, 10.0);
         List<Entity> entities = new ArrayList<>();
         entities.add(player);
         Pair<Double, Double> position = new Pair<>(BORDER_X / 2.0, BORDER_Y / 2.0);

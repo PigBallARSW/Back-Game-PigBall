@@ -43,6 +43,8 @@ public class Game implements Runnable, GameObserver {
 
     private static final int VELOCITY = 3;
     private static final double FRAME_RATE = 60;
+    public static final int baseWidth = 1200;
+    public static final int baseHeight = 900;
 
     public Game(String gameName, String creatorName, int maxPlayers, boolean privateGame,
             SimpMessagingTemplate messagingTemplate) {
@@ -55,11 +57,11 @@ public class Game implements Runnable, GameObserver {
         this.creationTime = Instant.now();
         this.startTime = null;
         this.messagingTemplate = messagingTemplate;
-        this.borderX = 1200;
-        this.borderY = 900;
+        this.borderX = baseWidth + baseWidth*(maxPlayers - 2);
+        this.borderY = baseHeight + baseHeight*(maxPlayers - 2);
         this.teams = new Pair<>(new Team(), new Team());
         this.players = new ConcurrentHashMap<>();
-        this.ball = new Ball(this.borderX / 2, this.borderY / 2, 0, 0, 20);
+        this.ball = new Ball(this.borderX / 2, this.borderY / 2, 0, 0, 10.0);
         this.ball.addObserver(this);
     }
 
@@ -141,7 +143,7 @@ public class Game implements Runnable, GameObserver {
         } else if (!player.getTeam().equals(existingPlayer.getTeam())) {
             updateTeamCounts(existingPlayer.getTeam());
         }
-        player.setRadius(30.0);
+        player.setRadius(20.0);
         return player;
     }
 
@@ -151,7 +153,7 @@ public class Game implements Runnable, GameObserver {
         double newY = random.nextDouble(borderY - 40.0) + player.getRadius();
         Pair<Double, Double> coordinates = new Pair<>(newX, newY);
         player.setPosition(borderX, borderY, coordinates, new ArrayList<>());
-        player.setRadius(30.0);
+        player.setRadius(20.0);
         if (player.getTeam() == null) {
             assignTeam(player);
         }

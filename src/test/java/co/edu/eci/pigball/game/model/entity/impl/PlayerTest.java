@@ -16,7 +16,7 @@ class PlayerTest {
     private Player player;
     private static final int BORDER_X = 1200;
     private static final int BORDER_Y = 900;
-    private static final double PLAYER_RADIUS = 30.0;
+    private static final double PLAYER_RADIUS = 20.0;
 
     @BeforeEach
     void setUp() {
