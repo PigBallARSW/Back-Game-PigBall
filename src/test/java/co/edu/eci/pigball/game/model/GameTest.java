@@ -16,6 +16,7 @@ import co.edu.eci.pigball.game.model.mapper.GameMapper;
 
 class GameTest {
     private Game game;
+    private double PLAYER_RADIUS = 20.0;
     private Player player1;
     private Player player2;
     private Player player3;
@@ -25,10 +26,10 @@ class GameTest {
     void setUp() {
         game = new Game("Juego1", "Creador1", 4, false, null);
 
-        player1 = new Player("player1", null, 0, 0, 20.0);
-        player2 = new Player("player2", null, 0, 0, 20.0);
-        player3 = new Player("player3", null, 0, 0, 20.0);
-        player4 = new Player("player4", null, 0, 0, 20.0);
+        player1 = new Player("player1", null, 0, 0, PLAYER_RADIUS);
+        player2 = new Player("player2", null, 0, 0, PLAYER_RADIUS);
+        player3 = new Player("player3", null, 0, 0, PLAYER_RADIUS);
+        player4 = new Player("player4", null, 0, 0, PLAYER_RADIUS);
     }
 
     @Test
@@ -138,7 +139,7 @@ class GameTest {
         });
 
         // Test adding the 5th player which should throw exception
-        Player player5 = new Player("player5", null, 0, 0, 20.0 );
+        Player player5 = new Player("player5", null, 0, 0, PLAYER_RADIUS);
         GameException exception = assertThrows(GameException.class, () -> game.addPlayer(player5));
         assertEquals(GameException.EXCEEDED_MAX_PLAYERS, exception.getMessage());
     }

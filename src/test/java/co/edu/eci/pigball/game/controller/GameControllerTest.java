@@ -42,12 +42,13 @@ class GameControllerTest {
 
     private String gameId;
     private Player player;
+    private double PLAYER_RADIUS = 20.0;
     private Movement movement;
 
     @BeforeEach
     void setUp() {
         gameId = "test-game-id";
-        player = new Player("TestPlayer", null, 0, 0, 20.0);
+        player = new Player("TestPlayer", null, 0, 0, PLAYER_RADIUS);
         movement = new Movement("TestPlayer", 1, 1, false);
     }
 

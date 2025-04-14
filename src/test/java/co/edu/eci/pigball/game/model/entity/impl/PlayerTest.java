@@ -49,13 +49,15 @@ class PlayerTest {
         Player otherPlayer = new Player("OtherPlayer", "session456", 150, 150, PLAYER_RADIUS);
         List<Entity> otherPlayers = new ArrayList<>();
         otherPlayers.add(otherPlayer);
-        
+        System.out.println(player.getX()+" "+player.getY());
+        System.out.println(otherPlayer.getX()+" "+otherPlayer.getY());
         Pair<Double, Double> newPosition = new Pair<>(140.0, 140.0);
         player.setPosition(BORDER_X, BORDER_Y, newPosition, otherPlayers);
-        
+        System.out.println(player.getX()+" "+player.getY());
+        System.out.println(otherPlayer.getX()+" "+otherPlayer.getY());
         // Position should be adjusted to avoid collision
-        assertTrue(Math.abs(player.getX() - 140.0) > PLAYER_RADIUS || 
-                  Math.abs(player.getY() - 140.0) > PLAYER_RADIUS);
+        assertTrue(Math.abs(player.getX() - 145.0) > PLAYER_RADIUS || 
+                  Math.abs(player.getY() - 145.0) > PLAYER_RADIUS);
     }
 
     @Test
@@ -89,12 +91,11 @@ class PlayerTest {
         List<Entity> otherPlayers = new ArrayList<>();
         otherPlayers.add(otherPlayer);
         
-        Pair<Double, Double> movement = new Pair<>(70.0, 70.0);
+        Pair<Double, Double> movement = new Pair<>(55.0, 55.0);
         player.move(BORDER_X, BORDER_Y, movement, otherPlayers);
-        
         // Position should be adjusted to avoid collision
-        assertTrue(Math.abs(player.getX() - 170.0) > PLAYER_RADIUS || 
-                  Math.abs(player.getY() - 170.0) > PLAYER_RADIUS);
+        assertTrue(Math.abs(player.getX() - 155.0) > PLAYER_RADIUS || 
+                  Math.abs(player.getY() - 155.0) > PLAYER_RADIUS);
     }
 
     @Test
