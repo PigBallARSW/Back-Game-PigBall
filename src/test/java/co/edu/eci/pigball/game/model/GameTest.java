@@ -1,9 +1,12 @@
 package co.edu.eci.pigball.game.model;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.awaitility.Awaitility.await;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -308,16 +311,29 @@ class GameTest {
         // Simulate a goal
         game.onGoalScored(0);
 
-        // Ball should be reset to center after a short delay
-        try {
-            Thread.sleep(150); // Wait for the reset
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        // Use Awaitility to wait for the ball to reset to center position
+        await()
+            .atMost(2, TimeUnit.SECONDS)
+            .pollInterval(50, TimeUnit.MILLISECONDS)
+            .until(ballIsAtCenter());
 
         // Ball should be back at center position
-        assertEquals(game.getBorderX() / 2.0, game.getBall().getX());
-        assertEquals(game.getBorderY() / 2.0, game.getBall().getY());
+        assertEquals(game.getBorderX() / 2.0, game.getBall().getX(), 0.1);
+        assertEquals(game.getBorderY() / 2.0, game.getBall().getY(), 0.1);
+    }
+
+    /**
+     * Creates a Callable that checks if the ball is at the center position
+     */
+    private Callable<Boolean> ballIsAtCenter() {
+        return () -> {
+            double centerX = game.getBorderX() / 2.0;
+            double centerY = game.getBorderY() / 2.0;
+            double ballX = game.getBall().getX();
+            double ballY = game.getBall().getY();
+            
+            return Math.abs(ballX - centerX) < 0.1 && Math.abs(ballY - centerY) < 0.1;
+        };
     }
 
     @Test

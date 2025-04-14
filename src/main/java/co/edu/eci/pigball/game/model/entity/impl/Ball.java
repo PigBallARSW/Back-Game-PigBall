@@ -9,10 +9,10 @@ import co.edu.eci.pigball.game.model.entity.Entity;
 
 public class Ball extends Entity {
 
-    public static final double collisionPlayerBoost = 1.3;
-    public static final double collisionWallBoost = 0.9;
-    public static final double minMagnitude = 20;
-    public static final double maxMagnitude = 800;
+    public static final double COLLISON_PLAYER_BOOST = 1.3;
+    public static final double COLLISON_WALL_BOOST = 0.9;
+    public static final double MIN_MAGNITUDE = 20;
+    public static final double MAX_MAGNITUDE = 800;
     
     // Variables para almacenar la dirección de movimiento
     private double velocityX = 0;
@@ -52,7 +52,7 @@ public class Ball extends Entity {
         
 
         // 1. Procesar colisiones con jugadores
-        Pair<Double, Double> collisionResult = handlePlayerCollision(newX, newY, entities, collisionPlayerBoost);
+        Pair<Double, Double> collisionResult = handlePlayerCollision(newX, newY, entities);
         if (collisionResult != null) {
             newX = collisionResult.getFirst();
             newY = collisionResult.getSecond();
@@ -67,7 +67,7 @@ public class Ball extends Entity {
         }
 
         // 3. Procesar colisiones con paredes (límites del campo)
-        Pair<Double, Double> wallResult = handleWallCollisions(newX, newY, borderX, borderY, collisionWallBoost);
+        Pair<Double, Double> wallResult = handleWallCollisions(newX, newY, borderX, borderY, COLLISON_WALL_BOOST);
         newX = wallResult.getFirst();
         newY = wallResult.getSecond();
 
@@ -85,7 +85,7 @@ public class Ball extends Entity {
      * impulso.
      * Retorna un Pair con la nueva posición o null si no hubo colisión.
      */
-    private Pair<Double, Double> handlePlayerCollision(double x, double y, List<Entity> entities, double boost) {
+    private Pair<Double, Double> handlePlayerCollision(double x, double y, List<Entity> entities) {
         for (Entity entity : entities) {
             double entityX = entity.getX();
             double entityY = entity.getY();
@@ -94,7 +94,7 @@ public class Ball extends Entity {
                 boolean isKicking = ((Player) entity).isKicking();
                 double angle = Math.atan2(y - entityY, x - entityX);
                 double magnitude = Math.sqrt(velocityX * velocityX + velocityY * velocityY);
-                if (magnitude < minMagnitude) {
+                if (magnitude < MIN_MAGNITUDE) {
                     magnitude = 200.0;
                 }
                 if (isKicking) {
@@ -168,9 +168,9 @@ public class Ball extends Entity {
      */
     private void limitVelocity() {
         double actualMagnitude = Math.sqrt(velocityX * velocityX + velocityY * velocityY);
-        if (actualMagnitude > maxMagnitude) {
+        if (actualMagnitude > MAX_MAGNITUDE) {
             // Se usa paréntesis para asegurar la operación correcta
-            double scale = (maxMagnitude - 1) / actualMagnitude;
+            double scale = (MAX_MAGNITUDE - 1) / actualMagnitude;
             velocityX *= scale;
             velocityY *= scale;
         }
