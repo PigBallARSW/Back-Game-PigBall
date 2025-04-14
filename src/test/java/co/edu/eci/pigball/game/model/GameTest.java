@@ -7,6 +7,10 @@ import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.java.Pair;
@@ -14,6 +18,7 @@ import co.edu.eci.pigball.game.model.dto.GameDTO;
 import co.edu.eci.pigball.game.model.entity.impl.Player;
 import co.edu.eci.pigball.game.model.mapper.GameMapper;
 
+@ExtendWith(MockitoExtension.class)
 class GameTest {
     private Game game;
     private double PLAYER_RADIUS = 20.0;
@@ -21,10 +26,13 @@ class GameTest {
     private Player player2;
     private Player player3;
     private Player player4;
+    
+    @Mock
+    private SimpMessagingTemplate messagingTemplate;
 
     @BeforeEach
     void setUp() {
-        game = new Game("Juego1", "Creador1", 4, false, null);
+        game = new Game("Juego1", "Creador1", 4, false, messagingTemplate);
 
         player1 = new Player("player1", null, 0, 0, PLAYER_RADIUS);
         player2 = new Player("player2", null, 0, 0, PLAYER_RADIUS);
@@ -261,5 +269,96 @@ class GameTest {
         assertEquals(1, game.getAllPlayers().size());
         assertEquals(player1.getRadius(), player1.getX());
         assertEquals(player1.getRadius(), player1.getY());
+    }
+
+    @Test
+    void testGoalScoringAndScoreUpdate() throws GameException {
+        // Add players and start the game
+        game.addPlayer(player1);
+        game.addPlayer(player2);
+        game.startGame();
+
+        // Initial score should be 0-0
+        assertEquals(0, game.getTeams().getFirst().getScore());
+        assertEquals(0, game.getTeams().getSecond().getScore());
+
+        // Simulate a goal for team 0
+        game.onGoalScored(0);
+        assertEquals(1, game.getTeams().getFirst().getScore());
+        assertEquals(0, game.getTeams().getSecond().getScore());
+
+        // Simulate a goal for team 1
+        game.onGoalScored(1);
+        assertEquals(1, game.getTeams().getFirst().getScore());
+        assertEquals(1, game.getTeams().getSecond().getScore());
+
+        // Simulate another goal for team 0
+        game.onGoalScored(0);
+        assertEquals(2, game.getTeams().getFirst().getScore());
+        assertEquals(1, game.getTeams().getSecond().getScore());
+    }
+
+    @Test
+    void testBallPositionResetAfterGoal() throws GameException {
+        // Add players and start the game
+        game.addPlayer(player1);
+        game.addPlayer(player2);
+        game.startGame();
+        
+        // Simulate a goal
+        game.onGoalScored(0);
+
+        // Ball should be reset to center after a short delay
+        try {
+            Thread.sleep(150); // Wait for the reset
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        // Ball should be back at center position
+        assertEquals(game.getBorderX() / 2.0, game.getBall().getX());
+        assertEquals(game.getBorderY() / 2.0, game.getBall().getY());
+    }
+
+    @Test
+    void testMultipleGoalsInSequence() throws GameException {
+        // Add players and start the game
+        game.addPlayer(player1);
+        game.addPlayer(player2);
+        game.startGame();
+
+        // Simulate multiple goals in quick succession
+        for (int i = 0; i < 5; i++) {
+            game.onGoalScored(i % 2); // Alternate between teams
+        }
+
+        // Verify final score
+        assertEquals(3, game.getTeams().getFirst().getScore());
+        assertEquals(2, game.getTeams().getSecond().getScore());
+
+        // Ball should still be at center after all goals
+        assertEquals(game.getBorderX() / 2.0, game.getBall().getX());
+        assertEquals(game.getBorderY() / 2.0, game.getBall().getY());
+    }
+
+    @Test
+    void testGoalScoringDuringGame() throws GameException {
+        // Add players and start the game
+        game.addPlayer(player1);
+        game.addPlayer(player2);
+        game.startGame();
+
+        // Verify game is in progress
+        assertEquals(GameStatus.IN_PROGRESS, game.getStatus());
+
+        // Simulate a goal
+        game.onGoalScored(0);
+
+        // Game should still be in progress
+        assertEquals(GameStatus.IN_PROGRESS, game.getStatus());
+        
+        // Score should be updated
+        assertEquals(1, game.getTeams().getFirst().getScore());
+        assertEquals(0, game.getTeams().getSecond().getScore());
     }
 }
