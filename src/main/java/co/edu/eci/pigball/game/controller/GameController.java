@@ -13,9 +13,9 @@ import org.springframework.stereotype.Controller;
 
 import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.model.Movement;
-import co.edu.eci.pigball.game.model.Player;
 import co.edu.eci.pigball.game.model.dto.GameDTO;
 import co.edu.eci.pigball.game.model.dto.PlayerDTO;
+import co.edu.eci.pigball.game.model.entity.impl.Player;
 import co.edu.eci.pigball.game.service.GameService;
 import lombok.Getter;
 import lombok.Setter;

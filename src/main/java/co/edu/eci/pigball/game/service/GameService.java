@@ -12,8 +12,9 @@ import org.slf4j.LoggerFactory;
 import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.model.Game;
 import co.edu.eci.pigball.game.model.Movement;
-import co.edu.eci.pigball.game.model.Player;
 import co.edu.eci.pigball.game.model.dto.GameDTO;
+import co.edu.eci.pigball.game.model.entity.impl.Player;
+import co.edu.eci.pigball.game.model.mapper.GameMapper;
 
 @Service
 public class GameService {
@@ -54,7 +55,7 @@ public class GameService {
         Thread gameThread = new Thread(game);
         gameThread.start();
         logger.info("Game created id: " + game.getGameId());
-        return GameDTO.toDTO(game);
+        return GameMapper.toDTO(game);
     }
 
     public GameDTO getGame(String gameId) throws GameException {
@@ -65,11 +66,11 @@ public class GameService {
         if (game == null) {
             throw new GameException(GameException.GAME_NOT_FOUND);
         }
-        return GameDTO.toDTO(game);
+        return GameMapper.toDTO(game);
     }
 
     public Collection<GameDTO> getAllGames() {
-        return GameDTO.toDTO(games.values());
+        return GameMapper.toDTO(games.values());
     }
 
     public void removeGame(String gameId) throws GameException {
@@ -155,7 +156,7 @@ public class GameService {
         if (movement.getPlayer() == null) {
             throw new GameException(GameException.NOT_EMPTY_PLAYER);
         }
-        game.makeAMove(movement.getPlayer(), movement.getDx(), movement.getDy());
+        game.makeAMove(movement.getPlayer(), movement.getDx(), movement.getDy(), movement.isKicking());
     }
 
 }

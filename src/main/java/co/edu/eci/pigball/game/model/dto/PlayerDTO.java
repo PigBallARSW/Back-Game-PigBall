@@ -2,7 +2,7 @@ package co.edu.eci.pigball.game.model.dto;
 
 import java.util.Collection;
 
-import co.edu.eci.pigball.game.model.Player;
+import co.edu.eci.pigball.game.model.entity.impl.Player;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,6 +19,7 @@ public class PlayerDTO {
     private Integer team;
     private double x;
     private double y;
+    private boolean isKicking;
 
     public static PlayerDTO toDTO(Player player) {
         PlayerDTO playerDTO = new PlayerDTO();
@@ -27,6 +28,7 @@ public class PlayerDTO {
         playerDTO.setTeam(player.getTeam());
         playerDTO.setX(player.getX());
         playerDTO.setY(player.getY());
+        playerDTO.setKicking(player.isKicking());
         return playerDTO;
     }
 

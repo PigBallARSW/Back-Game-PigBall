@@ -7,26 +7,37 @@ import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.java.Pair;
 import co.edu.eci.pigball.game.model.dto.GameDTO;
+import co.edu.eci.pigball.game.model.entity.impl.Player;
+import co.edu.eci.pigball.game.model.mapper.GameMapper;
 
+@ExtendWith(MockitoExtension.class)
 class GameTest {
     private Game game;
+    private double PLAYER_RADIUS = 20.0;
     private Player player1;
     private Player player2;
     private Player player3;
     private Player player4;
+    
+    @Mock
+    private SimpMessagingTemplate messagingTemplate;
 
     @BeforeEach
     void setUp() {
-        game = new Game("Juego1", "Creador1", 4, false, null);
+        game = new Game("Juego1", "Creador1", 4, false, messagingTemplate);
 
-        player1 = new Player("player1", null, 0, 0);
-        player2 = new Player("player2", null, 0, 0);
-        player3 = new Player("player3", null, 0, 0);
-        player4 = new Player("player4", null, 0, 0);
+        player1 = new Player("player1", null, 0, 0, PLAYER_RADIUS);
+        player2 = new Player("player2", null, 0, 0, PLAYER_RADIUS);
+        player3 = new Player("player3", null, 0, 0, PLAYER_RADIUS);
+        player4 = new Player("player4", null, 0, 0, PLAYER_RADIUS);
     }
 
     @Test
@@ -38,8 +49,9 @@ class GameTest {
         }
         assertEquals(1, game.getAllPlayers().size());
         assertTrue(game.getAllPlayers().contains(player1));
-        player1.setPosition(game.getBorderX(), game.getBorderY(), new Pair<Double,Double>(20.0, 20.0), new ArrayList<>(game.getAllPlayers()));
-        assertEquals(20, player1.getX());
+        player1.setPosition(game.getBorderX(), game.getBorderY(), new Pair<Double,Double>(player1.getRadius(), player1.getRadius()), new ArrayList<>(game.getAllPlayers()));
+        assertEquals(player1.getRadius(), player1.getX());
+        assertEquals(player1.getRadius(), player1.getY());
     }
 
     @Test
@@ -69,8 +81,8 @@ class GameTest {
         } catch (GameException e) {
             fail("Exception should not be thrown when starting game: " + e.getMessage());
         }
-        assertNotNull(GameDTO.toDTO(game));
-        assertEquals(2, GameDTO.toDTO(game).getPlayers().size());
+        assertNotNull(GameMapper.toDTO(game));
+        assertEquals(2, GameMapper.toDTO(game).getPlayers().size());
     }
 
     @Test
@@ -85,7 +97,7 @@ class GameTest {
         double initialX = player1.getX();
         double initialY = player1.getY();
 
-        game.makeAMove("player1", 2, 3);
+        game.makeAMove("player1", 2, 3, false);
         // Check that the player moved in the correct direction
         assertTrue(player1.getX() > initialX);
         assertTrue(player1.getY() > initialY);
@@ -102,7 +114,7 @@ class GameTest {
         // Store initial position
         double initialX = player1.getX();
         double initialY = player1.getY();
-        game.makeAMove("player1", 1, 1);
+        game.makeAMove("player1", 1, 1, false);
         Player movedPlayer = game.getPlayers().get("player1");
         assertNotNull(movedPlayer);
         // Validate that the player moved in the correct direction
@@ -135,7 +147,7 @@ class GameTest {
         });
 
         // Test adding the 5th player which should throw exception
-        Player player5 = new Player("player5", null, 0, 0);
+        Player player5 = new Player("player5", null, 0, 0, PLAYER_RADIUS);
         GameException exception = assertThrows(GameException.class, () -> game.addPlayer(player5));
         assertEquals(GameException.EXCEEDED_MAX_PLAYERS, exception.getMessage());
     }
@@ -248,14 +260,105 @@ class GameTest {
     void testPlayerReconnection() {
         try {
             game.addPlayer(player1);
-            player1.setPosition(game.getBorderX(), game.getBorderY(), new Pair<Double,Double>(20.0, 20.0), new ArrayList<>(game.getAllPlayers()));
+            player1.setPosition(game.getBorderX(), game.getBorderY(), new Pair<Double,Double>(player1.getRadius(), player1.getRadius()), new ArrayList<>(game.getAllPlayers()));
             game.addPlayer(player1); // Reconnect same player
         } catch (GameException e) {
             fail("Exception should not be thrown when reconnecting player: " + e.getMessage());
         }
 
         assertEquals(1, game.getAllPlayers().size());
-        assertEquals(20, player1.getX());
-        assertEquals(20, player1.getY());
+        assertEquals(player1.getRadius(), player1.getX());
+        assertEquals(player1.getRadius(), player1.getY());
+    }
+
+    @Test
+    void testGoalScoringAndScoreUpdate() throws GameException {
+        // Add players and start the game
+        game.addPlayer(player1);
+        game.addPlayer(player2);
+        game.startGame();
+
+        // Initial score should be 0-0
+        assertEquals(0, game.getTeams().getFirst().getScore());
+        assertEquals(0, game.getTeams().getSecond().getScore());
+
+        // Simulate a goal for team 0
+        game.onGoalScored(0);
+        assertEquals(1, game.getTeams().getFirst().getScore());
+        assertEquals(0, game.getTeams().getSecond().getScore());
+
+        // Simulate a goal for team 1
+        game.onGoalScored(1);
+        assertEquals(1, game.getTeams().getFirst().getScore());
+        assertEquals(1, game.getTeams().getSecond().getScore());
+
+        // Simulate another goal for team 0
+        game.onGoalScored(0);
+        assertEquals(2, game.getTeams().getFirst().getScore());
+        assertEquals(1, game.getTeams().getSecond().getScore());
+    }
+
+    @Test
+    void testBallPositionResetAfterGoal() throws GameException {
+        // Add players and start the game
+        game.addPlayer(player1);
+        game.addPlayer(player2);
+        game.startGame();
+        
+        // Simulate a goal
+        game.onGoalScored(0);
+
+        // Ball should be reset to center after a short delay
+        try {
+            Thread.sleep(150); // Wait for the reset
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        // Ball should be back at center position
+        assertEquals(game.getBorderX() / 2.0, game.getBall().getX());
+        assertEquals(game.getBorderY() / 2.0, game.getBall().getY());
+    }
+
+    @Test
+    void testMultipleGoalsInSequence() throws GameException {
+        // Add players and start the game
+        game.addPlayer(player1);
+        game.addPlayer(player2);
+        game.startGame();
+
+        // Simulate multiple goals in quick succession
+        for (int i = 0; i < 5; i++) {
+            game.onGoalScored(i % 2); // Alternate between teams
+        }
+
+        // Verify final score
+        assertEquals(3, game.getTeams().getFirst().getScore());
+        assertEquals(2, game.getTeams().getSecond().getScore());
+
+        // Ball should still be at center after all goals
+        assertEquals(game.getBorderX() / 2.0, game.getBall().getX());
+        assertEquals(game.getBorderY() / 2.0, game.getBall().getY());
+    }
+
+    @Test
+    void testGoalScoringDuringGame() throws GameException {
+        // Add players and start the game
+        game.addPlayer(player1);
+        game.addPlayer(player2);
+        game.startGame();
+
+        // Verify game is in progress
+        assertEquals(GameStatus.IN_PROGRESS, game.getStatus());
+
+        // Simulate a goal
+        game.onGoalScored(0);
+
+        // Game should still be in progress
+        assertEquals(GameStatus.IN_PROGRESS, game.getStatus());
+        
+        // Score should be updated
+        assertEquals(1, game.getTeams().getFirst().getScore());
+        assertEquals(0, game.getTeams().getSecond().getScore());
     }
 }
