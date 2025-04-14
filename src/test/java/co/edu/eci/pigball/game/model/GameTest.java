@@ -11,6 +11,8 @@ import org.junit.jupiter.api.Test;
 import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.java.Pair;
 import co.edu.eci.pigball.game.model.dto.GameDTO;
+import co.edu.eci.pigball.game.model.entity.impl.Player;
+import co.edu.eci.pigball.game.model.mapper.GameMapper;
 
 class GameTest {
     private Game game;
@@ -23,10 +25,10 @@ class GameTest {
     void setUp() {
         game = new Game("Juego1", "Creador1", 4, false, null);
 
-        player1 = new Player("player1", null, 0, 0);
-        player2 = new Player("player2", null, 0, 0);
-        player3 = new Player("player3", null, 0, 0);
-        player4 = new Player("player4", null, 0, 0);
+        player1 = new Player("player1", null, 0, 0, 30.0);
+        player2 = new Player("player2", null, 0, 0, 30.0);
+        player3 = new Player("player3", null, 0, 0, 30.0);
+        player4 = new Player("player4", null, 0, 0, 30.0);
     }
 
     @Test
@@ -38,8 +40,9 @@ class GameTest {
         }
         assertEquals(1, game.getAllPlayers().size());
         assertTrue(game.getAllPlayers().contains(player1));
-        player1.setPosition(game.getBorderX(), game.getBorderY(), new Pair<Double,Double>(20.0, 20.0), new ArrayList<>(game.getAllPlayers()));
-        assertEquals(20, player1.getX());
+        player1.setPosition(game.getBorderX(), game.getBorderY(), new Pair<Double,Double>(player1.getRadius(), player1.getRadius()), new ArrayList<>(game.getAllPlayers()));
+        assertEquals(player1.getRadius(), player1.getX());
+        assertEquals(player1.getRadius(), player1.getY());
     }
 
     @Test
@@ -69,8 +72,8 @@ class GameTest {
         } catch (GameException e) {
             fail("Exception should not be thrown when starting game: " + e.getMessage());
         }
-        assertNotNull(GameDTO.toDTO(game));
-        assertEquals(2, GameDTO.toDTO(game).getPlayers().size());
+        assertNotNull(GameMapper.toDTO(game));
+        assertEquals(2, GameMapper.toDTO(game).getPlayers().size());
     }
 
     @Test
@@ -85,7 +88,7 @@ class GameTest {
         double initialX = player1.getX();
         double initialY = player1.getY();
 
-        game.makeAMove("player1", 2, 3);
+        game.makeAMove("player1", 2, 3, false);
         // Check that the player moved in the correct direction
         assertTrue(player1.getX() > initialX);
         assertTrue(player1.getY() > initialY);
@@ -102,7 +105,7 @@ class GameTest {
         // Store initial position
         double initialX = player1.getX();
         double initialY = player1.getY();
-        game.makeAMove("player1", 1, 1);
+        game.makeAMove("player1", 1, 1, false);
         Player movedPlayer = game.getPlayers().get("player1");
         assertNotNull(movedPlayer);
         // Validate that the player moved in the correct direction
@@ -135,7 +138,7 @@ class GameTest {
         });
 
         // Test adding the 5th player which should throw exception
-        Player player5 = new Player("player5", null, 0, 0);
+        Player player5 = new Player("player5", null, 0, 0, 30.0 );
         GameException exception = assertThrows(GameException.class, () -> game.addPlayer(player5));
         assertEquals(GameException.EXCEEDED_MAX_PLAYERS, exception.getMessage());
     }
@@ -248,14 +251,14 @@ class GameTest {
     void testPlayerReconnection() {
         try {
             game.addPlayer(player1);
-            player1.setPosition(game.getBorderX(), game.getBorderY(), new Pair<Double,Double>(20.0, 20.0), new ArrayList<>(game.getAllPlayers()));
+            player1.setPosition(game.getBorderX(), game.getBorderY(), new Pair<Double,Double>(player1.getRadius(), player1.getRadius()), new ArrayList<>(game.getAllPlayers()));
             game.addPlayer(player1); // Reconnect same player
         } catch (GameException e) {
             fail("Exception should not be thrown when reconnecting player: " + e.getMessage());
         }
 
         assertEquals(1, game.getAllPlayers().size());
-        assertEquals(20, player1.getX());
-        assertEquals(20, player1.getY());
+        assertEquals(player1.getRadius(), player1.getX());
+        assertEquals(player1.getRadius(), player1.getY());
     }
 }

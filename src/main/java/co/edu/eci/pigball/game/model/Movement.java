@@ -12,5 +12,6 @@ public class Movement {
     private String player;
     private int dx;
     private int dy;
+    private boolean isKicking;
 
 }

@@ -14,8 +14,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.model.Movement;
-import co.edu.eci.pigball.game.model.Player;
 import co.edu.eci.pigball.game.model.dto.GameDTO;
+import co.edu.eci.pigball.game.model.entity.impl.Player;
 
 @ExtendWith(MockitoExtension.class)
 class GameServiceTest {
@@ -104,7 +104,7 @@ class GameServiceTest {
     @Test
     void testAddPlayerToGame() throws GameException {
         GameDTO createdGame = gameService.createGame(gameDTO);
-        Player player = new Player("TestPlayer", null, 0, 0);
+        Player player = new Player("TestPlayer", null, 0, 0, 30.0);
         List<Player> players = gameService.addPlayerToGame(createdGame.getId(), player);
         assertNotNull(players);
         assertEquals(1, players.size());
@@ -113,14 +113,14 @@ class GameServiceTest {
 
     @Test
     void testAddPlayerToNonExistentGame() {
-        Player player = new Player("TestPlayer", null, 0, 0);
+        Player player = new Player("TestPlayer", null, 0, 0, 30.0);
         assertThrows(GameException.class, () -> gameService.addPlayerToGame("non-existent-id", player));
     }
 
     @Test
     void testRemovePlayerFromGame() throws GameException {
         GameDTO createdGame = gameService.createGame(gameDTO);
-        Player player = new Player("TestPlayer", null, 0, 0);
+        Player player = new Player("TestPlayer", null, 0, 0, 30.0);
         gameService.addPlayerToGame(createdGame.getId(), player);
         List<Player> players = gameService.removePlayerFromGame(createdGame.getId(), player);
         assertNotNull(players);
@@ -129,20 +129,20 @@ class GameServiceTest {
 
     @Test
     void testRemovePlayerFromGameWithNullId() {
-        Player player = new Player("TestPlayer", null, 0, 0);
+        Player player = new Player("TestPlayer", null, 0, 0, 30.0);
         assertThrows(GameException.class, () -> gameService.removePlayerFromGame(null, player));
     }
 
     @Test
     void testRemovePlayerFromNonExistentGame() {
-        Player player = new Player("TestPlayer", null, 0, 0);
+        Player player = new Player("TestPlayer", null, 0, 0, 30.0);
         assertThrows(GameException.class, () -> gameService.removePlayerFromGame("non-existent-id", player));
     }
 
     @Test
     void testRemovePlayerFromGameByName() throws GameException {
         GameDTO createdGame = gameService.createGame(gameDTO);
-        Player player = new Player("TestPlayer", null, 0, 0);
+        Player player = new Player("TestPlayer", null, 0, 0, 30.0);
         gameService.addPlayerToGame(createdGame.getId(), player);
         List<Player> players = gameService.removePlayerFromGame(createdGame.getId(), "TestPlayer");
         assertNotNull(players);
@@ -162,7 +162,7 @@ class GameServiceTest {
     @Test
     void testGetPlayersFromGame() throws GameException {
         GameDTO createdGame = gameService.createGame(gameDTO);
-        Player player = new Player("TestPlayer", null, 0, 0);
+        Player player = new Player("TestPlayer", null, 0, 0, 30.0);
         gameService.addPlayerToGame(createdGame.getId(), player);
         List<Player> players = gameService.getPlayersFromGame(createdGame.getId());
         assertNotNull(players);
@@ -183,7 +183,7 @@ class GameServiceTest {
     @Test
     void testStartGame() throws GameException {
         GameDTO createdGame = gameService.createGame(gameDTO);
-        Player player = new Player("TestPlayer", null, 0, 0);
+        Player player = new Player("TestPlayer", null, 0, 0, 30.0);
         gameService.addPlayerToGame(createdGame.getId(), player);
         GameDTO startedGame = gameService.startGame(createdGame.getId());
         assertNotNull(startedGame);
@@ -203,28 +203,28 @@ class GameServiceTest {
     @Test
     void testMakeMoveInGame() throws GameException {
         GameDTO createdGame = gameService.createGame(gameDTO);
-        Player player = new Player("TestPlayer", null, 0, 0);
+        Player player = new Player("TestPlayer", null, 0, 0, 30.0);
         gameService.addPlayerToGame(createdGame.getId(), player);
-        Movement movement = new Movement("TestPlayer", 1, 1);
+        Movement movement = new Movement("TestPlayer", 1, 1, false);
         assertDoesNotThrow(() -> gameService.makeMoveInGame(createdGame.getId(), movement));
     }
 
     @Test
     void testMakeMoveInGameWithNullId() {
-        Movement movement = new Movement("TestPlayer", 1, 1);
+        Movement movement = new Movement("TestPlayer", 1, 1, false);
         assertThrows(GameException.class, () -> gameService.makeMoveInGame(null, movement));
     }
 
     @Test
     void testMakeMoveInNonExistentGame() {
-        Movement movement = new Movement("TestPlayer", 1, 1);
+        Movement movement = new Movement("TestPlayer", 1, 1, false);
         assertThrows(GameException.class, () -> gameService.makeMoveInGame("non-existent-id", movement));
     }
 
     @Test
     void testMakeMoveInGameWithNullPlayer() throws GameException {
         GameDTO createdGame = gameService.createGame(gameDTO);
-        Movement movement = new Movement(null, 1, 1);
+        Movement movement = new Movement(null, 1, 1, false);
         assertThrows(GameException.class, () -> gameService.makeMoveInGame(createdGame.getId(), movement));
     }
 }

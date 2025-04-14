@@ -16,16 +16,16 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.model.Movement;
-import co.edu.eci.pigball.game.model.Player;
 import co.edu.eci.pigball.game.model.dto.GameDTO;
 import co.edu.eci.pigball.game.model.dto.PlayerDTO;
+import co.edu.eci.pigball.game.model.entity.impl.Player;
 import co.edu.eci.pigball.game.service.GameService;
 import co.edu.eci.pigball.game.config.WebSocketEventListener;
 
 @ExtendWith(MockitoExtension.class)
 class GameControllerTest {
 
-    @Mock
+    @Mock   
     private GameService gameService;
 
     @Mock
@@ -47,8 +47,8 @@ class GameControllerTest {
     @BeforeEach
     void setUp() {
         gameId = "test-game-id";
-        player = new Player("TestPlayer", null, 0, 0);
-        movement = new Movement("TestPlayer", 1, 1);
+        player = new Player("TestPlayer", null, 0, 0, 30.0);
+        movement = new Movement("TestPlayer", 1, 1, false);
     }
 
     @Test
