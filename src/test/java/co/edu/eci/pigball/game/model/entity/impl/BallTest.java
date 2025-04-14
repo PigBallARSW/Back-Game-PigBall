@@ -148,7 +148,7 @@ class BallTest {
         // Check if velocity was capped
         double magnitude = Math.sqrt(ball.getVelocityX() * ball.getVelocityX() + 
                                    ball.getVelocityY() * ball.getVelocityY());
-        assertTrue(magnitude <= Ball.maxMagnitude);
+        assertTrue(magnitude <= Ball.MAX_MAGNITUDE);
     }
 
     // Helper class to test goal notifications

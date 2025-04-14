@@ -22,7 +22,7 @@ class GameServiceTest {
 
     @Mock
     private SimpMessagingTemplate messagingTemplate;
-    private double PLAYER_RADIUS = 20.0;
+    private static final double PLAYER_RADIUS = 20.0;
     private GameService gameService;
     private GameDTO gameDTO;
 

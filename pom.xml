@@ -90,6 +90,13 @@
             <version>5.3.1</version>
             <scope>test</scope>
         </dependency>
+        <!-- Awaitility for asynchronous testing -->
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <version>4.2.0</version>
+            <scope>test</scope>
+        </dependency>
        
 	</dependencies>
 

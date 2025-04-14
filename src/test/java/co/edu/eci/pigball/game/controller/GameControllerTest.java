@@ -42,7 +42,7 @@ class GameControllerTest {
 
     private String gameId;
     private Player player;
-    private double PLAYER_RADIUS = 20.0;
+    private static final double PLAYER_RADIUS = 20.0;
     private Movement movement;
 
     @BeforeEach

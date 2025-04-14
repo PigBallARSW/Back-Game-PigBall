@@ -89,7 +89,7 @@ public class Player extends Entity {
         boolean isInYRange = (y - radius + 10 > middleY - (borderY * 0.09)) && (y + radius - 10 < middleY + (borderY * 0.09));
         boolean isInGoalArea = isInXRange && isInYRange;
         if (isInGoalArea) {
-            x = Math.clamp(x, -10, borderX + 10);
+            x = Math.clamp(x, -10.0, borderX + 10.0);
             y = Math.clamp(y, middleY - (borderY * 0.09) + radius, middleY + (borderY * 0.09) - radius);
             return new Pair<>(x, y);
         }

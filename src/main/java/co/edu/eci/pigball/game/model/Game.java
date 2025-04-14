@@ -43,8 +43,8 @@ public class Game implements Runnable, GameObserver {
 
     private static final int VELOCITY = 3;
     private static final double FRAME_RATE = 60;
-    public static final int baseWidth = 1200;
-    public static final int baseHeight = 900;
+    public static final int BASE_WIDTH = 1200;
+    public static final int BASE_HEIGHT = 900;
 
     public Game(String gameName, String creatorName, int maxPlayers, boolean privateGame,
             SimpMessagingTemplate messagingTemplate) {
@@ -57,8 +57,8 @@ public class Game implements Runnable, GameObserver {
         this.creationTime = Instant.now();
         this.startTime = null;
         this.messagingTemplate = messagingTemplate;
-        this.borderX = baseWidth + baseWidth*(maxPlayers - 2);
-        this.borderY = baseHeight + baseHeight*(maxPlayers - 2);
+        this.borderX = BASE_WIDTH + BASE_WIDTH*(maxPlayers - 2);
+        this.borderY = BASE_HEIGHT + BASE_HEIGHT*(maxPlayers - 2);
         this.teams = new Pair<>(new Team(), new Team());
         this.players = new ConcurrentHashMap<>();
         this.ball = new Ball(this.borderX / 2, this.borderY / 2, 0, 0, 10.0);
@@ -71,7 +71,6 @@ public class Game implements Runnable, GameObserver {
 
     @Override
     public void run() {
-        Instant actualTime = Instant.now();
         while (status != GameStatus.FINISHED && status != GameStatus.ABANDONED) {
             try {
                 broadcastGameState();
@@ -81,24 +80,24 @@ public class Game implements Runnable, GameObserver {
                 break;
             }
 
-            actualTime = Instant.now();
+            Instant actualTime = Instant.now();
 
             if (startTime != null && actualTime.isAfter(startTime.plusSeconds(300))) {
                 status = GameStatus.FINISHED;
                 try {
                     messagingTemplate.convertAndSend("/topic/finished/" + gameId, GameMapper.toDTO(this));
-                    logger.info("La partida con id " + gameId + " ha terminado.");
+                    logger.info("La partida termino, su id era: {}", gameId);
                 } catch (MessagingException e) {
-                    logger.error("Error al enviar el estado del juego");
+                    logger.error(e.getMessage());
                 }
             } else if (creationTime.plusSeconds(1800).isBefore(actualTime)
                     && status == GameStatus.WAITING_FOR_PLAYERS) {
                 status = GameStatus.ABANDONED;
                 try {
                     messagingTemplate.convertAndSend("/topic/abandoned/" + gameId, GameMapper.toDTO(this));
-                    logger.info("La partida con id " + gameId + " ha sido abandonada por inactividad.");
+                    logger.info("La partida ha sido abandonada por inactividad, su id era: {}", gameId);
                 } catch (MessagingException e) {
-                    logger.error("Error al enviar el estado del juego");
+                    logger.error(e.getMessage());
                 }
             }
         }
@@ -207,7 +206,7 @@ public class Game implements Runnable, GameObserver {
             Thread.sleep(5000);
             status = GameStatus.IN_PROGRESS;
             startTime = Instant.now();
-            logger.info("La partida con id " + gameId + " ha comenzado.");
+            logger.info("La partida ha empezado su id es: {}", gameId);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new GameException(GameException.GAME_START_INTERRUPTED);
@@ -236,28 +235,28 @@ public class Game implements Runnable, GameObserver {
     private Pair<Double, Double> getStartPosition(Player player, int ubicatedPlayersTeamOne,
             int ubicatedPlayersTeamTwo) {
         if (player.getTeam() == 0) {
-            double base_x = 3 * player.getRadius();
-            double base_y = 3 * player.getRadius();
-            double x = ubicatedPlayersTeamOne % 2 == 0 ? base_x : base_x + (3 * player.getRadius());
+            double baseX = 3 * player.getRadius();
+            double baseY = 3 * player.getRadius();
+            double x = ubicatedPlayersTeamOne % 2 == 0 ? baseX : baseX + (3 * player.getRadius());
             double y = 0;
             if (maxPlayers == 2) {
-                y = borderY / 2;
+                y = borderY / 2.0;
             } else {
-                y = (((borderY - (2 * base_y)) / ((maxPlayers / 2) - 1)) * ubicatedPlayersTeamOne) + base_y;
+                y = (((borderY - (2.0 * baseY)) / ((maxPlayers / 2.0) - 1.0)) * ubicatedPlayersTeamOne) + baseY;
             }
-            logger.info("Player team 0: " + player.getName() + " set to position " + x + ", " + y);
+            logger.info("Player team 0: {} set to position {}, {}", player.getName(), x, y);
             return new Pair<>(x, y);
         } else {
-            double base_x = borderX - (3 * player.getRadius());
-            double base_y = 3 * player.getRadius();
-            double x = ubicatedPlayersTeamTwo % 2 == 0 ? base_x : base_x - (3 * player.getRadius());
+            double baseX = borderX - (3 * player.getRadius());
+            double baseY = 3 * player.getRadius();
+            double x = ubicatedPlayersTeamTwo % 2 == 0 ? baseX : baseX - (3 * player.getRadius());
             double y = 0;
             if (maxPlayers == 2) {
-                y = borderY / 2;
+                y = borderY / 2.0;
             } else {
-                y = (((borderY - (2 * base_y)) / ((maxPlayers / 2) - 1)) * ubicatedPlayersTeamTwo) + base_y;
+                y = (((borderY - (2.0 * baseY)) / ((maxPlayers / 2.0) - 1.0)) * ubicatedPlayersTeamTwo) + baseY;
             }
-            logger.info("Player team 1: " + player.getName() + " set to position " + x + ", " + y);
+            logger.info("Player team 1: {} set to position {}, {}", player.getName(), x, y);
             return new Pair<>(x, y);
         }
     }
@@ -267,7 +266,7 @@ public class Game implements Runnable, GameObserver {
             makeABallMove();
             messagingTemplate.convertAndSend("/topic/play/" + gameId, GameMapper.toDTO(this));
         } catch (MessagingException e) {
-            logger.error("Error al enviar el estado del juego");
+            logger.error(e.getMessage());
         }
     }
 
