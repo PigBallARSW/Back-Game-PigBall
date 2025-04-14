@@ -24,7 +24,7 @@ import co.edu.eci.pigball.game.model.mapper.GameMapper;
 @ExtendWith(MockitoExtension.class)
 class GameTest {
     private Game game;
-    private double PLAYER_RADIUS = 20.0;
+    private static final double PLAYER_RADIUS = 20.0;
     private Player player1;
     private Player player2;
     private Player player3;
