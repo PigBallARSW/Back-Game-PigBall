@@ -8,9 +8,9 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import co.edu.eci.pigball.game.java.Pair;
 import co.edu.eci.pigball.game.model.GameObserver;
 import co.edu.eci.pigball.game.model.entity.Entity;
+import co.edu.eci.pigball.game.utility.Pair;
 
 class BallTest {
 
@@ -110,7 +110,7 @@ class BallTest {
 
         // Check if goal was detected
         assertTrue(observer.wasGoalScored());
-        assertEquals(0, observer.getLastGoalTeam());
+        assertEquals(1, observer.getLastGoalTeam());
     }
 
     @Test
@@ -157,7 +157,7 @@ class BallTest {
         private int lastGoalTeam = -1;
         
         @Override
-        public void onGoalScored(int team) {
+        public void onGoalScored(int team, List<Player> players) {
             goalScored = true;
             lastGoalTeam = team;
         }
