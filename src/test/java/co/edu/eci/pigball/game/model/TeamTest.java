@@ -2,8 +2,6 @@ package co.edu.eci.pigball.game.model;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.List;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -19,7 +17,6 @@ class TeamTest {
     void testInitialState() {
         assertEquals(0, team.getScore());
         assertEquals(0, team.getPlayers());
-        assertTrue(team.getEvents().isEmpty());
     }
 
     @Test
@@ -55,23 +52,6 @@ class TeamTest {
         assertEquals(0, team.getPlayers());
     }
 
-    @Test
-    void testEventOperations() {
-        // Test initial events
-        assertTrue(team.getEvents().isEmpty());
-
-        // Test adding events
-        team.addEvent("Player joined");
-        team.addEvent("Player scored");
-        team.addEvent("Player left");
-
-        // Test event list
-        List<String> events = team.getEvents();
-        assertEquals(3, events.size());
-        assertEquals("Player joined", events.get(0));
-        assertEquals("Player scored", events.get(1));
-        assertEquals("Player left", events.get(2));
-    }
 
     @Test
     void testConcurrentOperations() {

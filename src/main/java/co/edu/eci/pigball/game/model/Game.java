@@ -39,9 +39,10 @@ public class Game implements Runnable, GameObserver {
     private int borderY;
     private Pair<Team, Team> teams;
     private ConcurrentHashMap<String, Player> players;
+    private List<Pair<String,Event>> events;
     private Ball ball;
 
-    private static final int VELOCITY = 3;
+    private static final int VELOCITY = 1;
     private static final double FRAME_RATE = 60;
     public static final int BASE_WIDTH = 1200;
     public static final int BASE_HEIGHT = 900;
@@ -60,6 +61,7 @@ public class Game implements Runnable, GameObserver {
         this.borderX = BASE_WIDTH + BASE_WIDTH*(maxPlayers - 2);
         this.borderY = BASE_HEIGHT + BASE_HEIGHT*(maxPlayers - 2);
         this.teams = new Pair<>(new Team(), new Team());
+        this.events = new ArrayList<>();
         this.players = new ConcurrentHashMap<>();
         this.ball = new Ball(this.borderX / 2, this.borderY / 2, 0, 0, 10.0);
         this.ball.addObserver(this);
@@ -185,7 +187,7 @@ public class Game implements Runnable, GameObserver {
 
     public void removePlayer(String playerName) {
         players.remove(playerName);
-        if (players.size() == 0) {
+        if (players.size() == 0 && (GameStatus.FINISHED != status || GameStatus.WAITING_FOR_PLAYERS != status)) {
             status = GameStatus.ABANDONED;
         } else if (players.size() == maxPlayers - 1 && status == GameStatus.WAITING_FOR_PLAYERS) {
             status = GameStatus.WAITING_FOR_PLAYERS;
@@ -264,7 +266,7 @@ public class Game implements Runnable, GameObserver {
     public void broadcastGameState() {
         try {
             makeABallMove();
-            messagingTemplate.convertAndSend("/topic/play/" + gameId, GameMapper.toDTO(this));
+            messagingTemplate.convertAndSend("/topic/play/" + gameId, GameMapper.toBasicDTO(this));
         } catch (MessagingException e) {
             logger.error(e.getMessage());
         }
@@ -288,7 +290,8 @@ public class Game implements Runnable, GameObserver {
         }
         // Uso de Delta Time
         double dt = 100.0 / FRAME_RATE; // Delta Time basado en el framerate
-        double adjustedVelocity = VELOCITY * dt;
+
+        double adjustedVelocity = !player.isKicking() ? VELOCITY * dt  : VELOCITY * 0.75 * dt;
         Pair<Double, Double> movement = new Pair<>(fdx * adjustedVelocity, fdy * adjustedVelocity);
         player.move(borderX, borderY, movement, new ArrayList<>(players.values()));
     }
@@ -312,11 +315,38 @@ public class Game implements Runnable, GameObserver {
     }
 
     @Override
-    public void onGoalScored(int team) {
+    public void onGoalScored(int team, List<Player> players) {
         if (team == 0) {
             teams.getFirst().increaseScore();
         } else {
             teams.getSecond().increaseScore();
+        }
+
+        // Search the last player that touch the ball
+        Player lastPlayerOfTheTeam = null;
+        Player assitantPlayer = null;
+
+        for(Player player : players) {
+            if (player.getTeam() == team) {
+                lastPlayerOfTheTeam = player;
+                break;   
+            }
+        }
+        for(Player player : players) {
+            if (lastPlayerOfTheTeam != player && player.getTeam() != team) {
+                assitantPlayer = player;   
+                break;
+            }
+        }
+        if (lastPlayerOfTheTeam != null) {
+            events.add(new Pair<>(lastPlayerOfTheTeam.getName(), Event.GOAL_SCORED));
+        } else{
+            lastPlayerOfTheTeam = players.get(0);
+            events.add(new Pair<>(lastPlayerOfTheTeam.getName(), Event.SELF_GOAL_SCORED));
+        }
+
+        if (assitantPlayer != null) {
+            events.add(new Pair<>(assitantPlayer.getName(), Event.GOAL_ASSIST));
         }
 
         try {

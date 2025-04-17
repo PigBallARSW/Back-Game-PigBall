@@ -3,6 +3,7 @@ package co.edu.eci.pigball.game.model.entity.impl;
 import java.util.List;
 import java.util.ArrayList;
 
+import co.edu.eci.pigball.game.java.FixedSizeStackLikeQueue;
 import co.edu.eci.pigball.game.java.Pair;
 import co.edu.eci.pigball.game.model.GameObserver;
 import co.edu.eci.pigball.game.model.entity.Entity;
@@ -11,7 +12,7 @@ public class Ball extends Entity {
 
     public static final double COLLISON_PLAYER_BOOST = 1.3;
     public static final double COLLISON_WALL_BOOST = 0.9;
-    public static final double MIN_MAGNITUDE = 20;
+    public static final double MIN_MAGNITUDE = 100;
     public static final double MAX_MAGNITUDE = 800;
     
     // Variables para almacenar la dirección de movimiento
@@ -19,12 +20,15 @@ public class Ball extends Entity {
     private double velocityY = 0;
     private List<GameObserver> observers;
     private int lastGoalTeam = -1;
+    //Cola de prioridad con los ultimos jugadores que han tocado la pelota
+    private FixedSizeStackLikeQueue<Player> lastPlayers;
 
     public Ball(int x, int y, int velocityX, int velocityY, double radius) {
         super(x, y, radius);
         this.velocityX = velocityX;
         this.velocityY = velocityY;
         this.observers = new ArrayList<>();
+        this.lastPlayers = new FixedSizeStackLikeQueue<>(5);
     }
 
     public void addObserver(GameObserver observer) {
@@ -35,11 +39,11 @@ public class Ball extends Entity {
         observers.remove(observer);
     }
 
-    private void notifyGoalScored(int team) {
+    private void notifyGoalScored(int team, List<Player> players) {
         if (team != lastGoalTeam) { // Prevent multiple notifications for the same goal
             lastGoalTeam = team;
             for (GameObserver observer : observers) {
-                observer.onGoalScored(team);
+                observer.onGoalScored(team, players);
             }
         }
     }
@@ -107,6 +111,7 @@ public class Ball extends Entity {
                 // Actualiza la posición para evitar solapamientos
                 x = entityX + Math.cos(angle) * (radius + entity.getRadius());
                 y = entityY + Math.sin(angle) * (radius + entity.getRadius());
+                lastPlayers.add((Player) entity);
                 return new Pair<>(x, y);
             }
         }
@@ -125,10 +130,12 @@ public class Ball extends Entity {
         boolean isInGoalArea = isInXRange && isInYRange;
         if (isInGoalArea) {
             if (x - radius < -2 * radius) {
-                notifyGoalScored(0);
+                notifyGoalScored(1, lastPlayers.getElements());
+                lastPlayers.reset();
                 return new Pair<>(borderX / 2.0, borderY / 2.0);
             } else if (x + radius > borderX + 2 * radius) {
-                notifyGoalScored(1);
+                notifyGoalScored(2, lastPlayers.getElements());
+                lastPlayers.reset();
                 return new Pair<>(borderX / 2.0, borderY / 2.0);
             }
             y = Math.clamp(y, middleY - (borderY * 0.09) + radius, middleY + (borderY * 0.09) - radius);

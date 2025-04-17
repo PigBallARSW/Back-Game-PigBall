@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.List;
 
 import co.edu.eci.pigball.game.java.Pair;
+import co.edu.eci.pigball.game.model.Event;
 import co.edu.eci.pigball.game.model.GameStatus;    
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -28,6 +29,7 @@ public class GameDTO {
     private int borderY;
     private List<PlayerDTO> players;
     private BallDTO ball;
+    private List<Pair<String,Event>> events;
     private Pair<Integer, Integer> teams;
 
     public int getMaxPlayers() {

@@ -157,7 +157,7 @@ class BallTest {
         private int lastGoalTeam = -1;
         
         @Override
-        public void onGoalScored(int team) {
+        public void onGoalScored(int team, List<Player> players) {
             goalScored = true;
             lastGoalTeam = team;
         }

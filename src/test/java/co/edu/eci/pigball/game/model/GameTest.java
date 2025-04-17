@@ -286,17 +286,17 @@ class GameTest {
         assertEquals(0, game.getTeams().getSecond().getScore());
 
         // Simulate a goal for team 0
-        game.onGoalScored(0);
+        game.onGoalScored(0, new ArrayList<>());
         assertEquals(1, game.getTeams().getFirst().getScore());
         assertEquals(0, game.getTeams().getSecond().getScore());
 
         // Simulate a goal for team 1
-        game.onGoalScored(1);
+        game.onGoalScored(1, new ArrayList<>());
         assertEquals(1, game.getTeams().getFirst().getScore());
         assertEquals(1, game.getTeams().getSecond().getScore());
 
         // Simulate another goal for team 0
-        game.onGoalScored(0);
+        game.onGoalScored(0, new ArrayList<>());
         assertEquals(2, game.getTeams().getFirst().getScore());
         assertEquals(1, game.getTeams().getSecond().getScore());
     }
@@ -309,7 +309,7 @@ class GameTest {
         game.startGame();
         
         // Simulate a goal
-        game.onGoalScored(0);
+        game.onGoalScored(0, new ArrayList<>());
 
         // Use Awaitility to wait for the ball to reset to center position
         await()
@@ -345,7 +345,7 @@ class GameTest {
 
         // Simulate multiple goals in quick succession
         for (int i = 0; i < 5; i++) {
-            game.onGoalScored(i % 2); // Alternate between teams
+            game.onGoalScored(i % 2, new ArrayList<>()); // Alternate between teams
         }
 
         // Verify final score
@@ -368,7 +368,7 @@ class GameTest {
         assertEquals(GameStatus.IN_PROGRESS, game.getStatus());
 
         // Simulate a goal
-        game.onGoalScored(0);
+        game.onGoalScored(0, new ArrayList<>());
 
         // Game should still be in progress
         assertEquals(GameStatus.IN_PROGRESS, game.getStatus());
