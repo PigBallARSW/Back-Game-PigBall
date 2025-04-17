@@ -3,10 +3,10 @@ package co.edu.eci.pigball.game.model.entity.impl;
 import java.util.List;
 import java.util.ArrayList;
 
-import co.edu.eci.pigball.game.java.FixedSizeStackLikeQueue;
-import co.edu.eci.pigball.game.java.Pair;
 import co.edu.eci.pigball.game.model.GameObserver;
 import co.edu.eci.pigball.game.model.entity.Entity;
+import co.edu.eci.pigball.game.utility.FixedSizeStackLikeQueue;
+import co.edu.eci.pigball.game.utility.Pair;
 
 public class Ball extends Entity {
 
@@ -132,10 +132,12 @@ public class Ball extends Entity {
             if (x - radius < -2 * radius) {
                 notifyGoalScored(1, lastPlayers.getElements());
                 lastPlayers.reset();
+                System.out.println("Gol del equipo 1");
                 return new Pair<>(borderX / 2.0, borderY / 2.0);
             } else if (x + radius > borderX + 2 * radius) {
                 notifyGoalScored(2, lastPlayers.getElements());
                 lastPlayers.reset();
+                System.out.println("Gol del equipo 2");
                 return new Pair<>(borderX / 2.0, borderY / 2.0);
             }
             y = Math.clamp(y, middleY - (borderY * 0.09) + radius, middleY + (borderY * 0.09) - radius);

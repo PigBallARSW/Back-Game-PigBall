@@ -12,11 +12,11 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import co.edu.eci.pigball.game.exception.GameException;
-import co.edu.eci.pigball.game.java.Pair;
 import co.edu.eci.pigball.game.model.dto.GameDTO;
 import co.edu.eci.pigball.game.model.entity.impl.Ball;
 import co.edu.eci.pigball.game.model.entity.impl.Player;
 import co.edu.eci.pigball.game.model.mapper.GameMapper;
+import co.edu.eci.pigball.game.utility.Pair;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,8 +58,8 @@ public class Game implements Runnable, GameObserver {
         this.creationTime = Instant.now();
         this.startTime = null;
         this.messagingTemplate = messagingTemplate;
-        this.borderX = BASE_WIDTH + BASE_WIDTH*(maxPlayers - 2);
-        this.borderY = BASE_HEIGHT + BASE_HEIGHT*(maxPlayers - 2);
+        this.borderX = BASE_WIDTH + BASE_WIDTH*(maxPlayers - 2)/10;
+        this.borderY = BASE_HEIGHT + BASE_HEIGHT*(maxPlayers - 2)/10;
         this.teams = new Pair<>(new Team(), new Team());
         this.events = new ArrayList<>();
         this.players = new ConcurrentHashMap<>();

@@ -2,8 +2,8 @@ package co.edu.eci.pigball.game.model.entity.impl;
 
 import java.util.List;
 
-import co.edu.eci.pigball.game.java.Pair;
 import co.edu.eci.pigball.game.model.entity.Entity;
+import co.edu.eci.pigball.game.utility.Pair;
 import lombok.Getter;
 
 @Getter

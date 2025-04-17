@@ -3,7 +3,7 @@ package co.edu.eci.pigball.game.model.entity;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import co.edu.eci.pigball.game.java.Pair;
+import co.edu.eci.pigball.game.utility.Pair;
 
 public abstract class Entity {
     private AtomicReference<Double> x;

@@ -8,8 +8,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
-import co.edu.eci.pigball.game.java.Pair;
 import co.edu.eci.pigball.game.service.GameService;
+import co.edu.eci.pigball.game.utility.Pair;
 
 import java.util.concurrent.*;
 

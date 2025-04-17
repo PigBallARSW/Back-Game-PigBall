@@ -1,9 +1,9 @@
 package co.edu.eci.pigball.game.model.mapper;
 
-import co.edu.eci.pigball.game.java.Pair;
 import co.edu.eci.pigball.game.model.Game;
 import co.edu.eci.pigball.game.model.dto.GameDTO;
 import co.edu.eci.pigball.game.model.dto.PlayerDTO;
+import co.edu.eci.pigball.game.utility.Pair;
 import co.edu.eci.pigball.game.model.dto.BallDTO;
 import co.edu.eci.pigball.game.model.dto.BasicGameDTO;
 

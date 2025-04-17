@@ -3,9 +3,9 @@ package co.edu.eci.pigball.game.model.dto;
 import java.time.Instant;
 import java.util.List;
 
-import co.edu.eci.pigball.game.java.Pair;
 import co.edu.eci.pigball.game.model.Event;
-import co.edu.eci.pigball.game.model.GameStatus;    
+import co.edu.eci.pigball.game.model.GameStatus;
+import co.edu.eci.pigball.game.utility.Pair;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

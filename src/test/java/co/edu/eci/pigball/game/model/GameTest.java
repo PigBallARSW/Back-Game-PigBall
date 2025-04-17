@@ -16,10 +16,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import co.edu.eci.pigball.game.exception.GameException;
-import co.edu.eci.pigball.game.java.Pair;
 import co.edu.eci.pigball.game.model.dto.GameDTO;
 import co.edu.eci.pigball.game.model.entity.impl.Player;
 import co.edu.eci.pigball.game.model.mapper.GameMapper;
+import co.edu.eci.pigball.game.utility.Pair;
 
 @ExtendWith(MockitoExtension.class)
 class GameTest {
@@ -284,19 +284,21 @@ class GameTest {
         // Initial score should be 0-0
         assertEquals(0, game.getTeams().getFirst().getScore());
         assertEquals(0, game.getTeams().getSecond().getScore());
-
+        List<Player> players = new ArrayList<>();
+        players.add(player1);
+        players.add(player2);
         // Simulate a goal for team 0
-        game.onGoalScored(0, new ArrayList<>());
+        game.onGoalScored(0, players);
         assertEquals(1, game.getTeams().getFirst().getScore());
         assertEquals(0, game.getTeams().getSecond().getScore());
 
         // Simulate a goal for team 1
-        game.onGoalScored(1, new ArrayList<>());
+        game.onGoalScored(1, players);
         assertEquals(1, game.getTeams().getFirst().getScore());
         assertEquals(1, game.getTeams().getSecond().getScore());
 
         // Simulate another goal for team 0
-        game.onGoalScored(0, new ArrayList<>());
+        game.onGoalScored(0, players);
         assertEquals(2, game.getTeams().getFirst().getScore());
         assertEquals(1, game.getTeams().getSecond().getScore());
     }
@@ -308,8 +310,11 @@ class GameTest {
         game.addPlayer(player2);
         game.startGame();
         
+        List<Player> players = new ArrayList<>();
+        players.add(player1);
+        players.add(player2);
         // Simulate a goal
-        game.onGoalScored(0, new ArrayList<>());
+        game.onGoalScored(0, players);
 
         // Use Awaitility to wait for the ball to reset to center position
         await()
@@ -343,9 +348,13 @@ class GameTest {
         game.addPlayer(player2);
         game.startGame();
 
+        List<Player> players = new ArrayList<>();
+        players.add(player1);
+        players.add(player2);
+
         // Simulate multiple goals in quick succession
         for (int i = 0; i < 5; i++) {
-            game.onGoalScored(i % 2, new ArrayList<>()); // Alternate between teams
+            game.onGoalScored(i % 2, players); // Alternate between teams
         }
 
         // Verify final score
@@ -363,12 +372,15 @@ class GameTest {
         game.addPlayer(player1);
         game.addPlayer(player2);
         game.startGame();
-
+        
+        List<Player> players = new ArrayList<>();
+        players.add(player1);
+        players.add(player2);
         // Verify game is in progress
         assertEquals(GameStatus.IN_PROGRESS, game.getStatus());
 
         // Simulate a goal
-        game.onGoalScored(0, new ArrayList<>());
+        game.onGoalScored(0, players);
 
         // Game should still be in progress
         assertEquals(GameStatus.IN_PROGRESS, game.getStatus());

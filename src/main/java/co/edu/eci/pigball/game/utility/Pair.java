@@ -1,4 +1,4 @@
-package co.edu.eci.pigball.game.java;
+package co.edu.eci.pigball.game.utility;
 
 import lombok.Getter;
 import lombok.Setter;

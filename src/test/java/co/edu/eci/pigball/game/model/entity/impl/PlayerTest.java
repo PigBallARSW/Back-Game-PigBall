@@ -8,8 +8,8 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import co.edu.eci.pigball.game.java.Pair;
 import co.edu.eci.pigball.game.model.entity.Entity;
+import co.edu.eci.pigball.game.utility.Pair;
 
 class PlayerTest {
 
