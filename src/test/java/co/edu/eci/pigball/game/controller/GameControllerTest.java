@@ -48,7 +48,7 @@ class GameControllerTest {
     @BeforeEach
     void setUp() {
         gameId = "test-game-id";
-        player = new Player("TestPlayer", null, 0, 0, PLAYER_RADIUS);
+        player = new Player("TestPlayer", "123",null, 0, 0, PLAYER_RADIUS);
         movement = new Movement("TestPlayer", 1, 1, false);
     }
 

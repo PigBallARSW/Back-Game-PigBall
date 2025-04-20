@@ -37,10 +37,10 @@ class GameTest {
     void setUp() {
         game = new Game("Juego1", "Creador1", 4, false, messagingTemplate);
 
-        player1 = new Player("player1", null, 0, 0, PLAYER_RADIUS);
-        player2 = new Player("player2", null, 0, 0, PLAYER_RADIUS);
-        player3 = new Player("player3", null, 0, 0, PLAYER_RADIUS);
-        player4 = new Player("player4", null, 0, 0, PLAYER_RADIUS);
+        player1 = new Player("player1", "123",null, 0, 0, PLAYER_RADIUS);
+        player2 = new Player("player2", "123",null, 0, 0, PLAYER_RADIUS);
+        player3 = new Player("player3", "123",null, 0, 0, PLAYER_RADIUS);
+        player4 = new Player("player4", "123",null, 0, 0, PLAYER_RADIUS);
     }
 
     @Test
@@ -150,7 +150,7 @@ class GameTest {
         });
 
         // Test adding the 5th player which should throw exception
-        Player player5 = new Player("player5", null, 0, 0, PLAYER_RADIUS);
+        Player player5 = new Player("player5","123", null, 0, 0, PLAYER_RADIUS);
         GameException exception = assertThrows(GameException.class, () -> game.addPlayer(player5));
         assertEquals(GameException.EXCEEDED_MAX_PLAYERS, exception.getMessage());
     }
