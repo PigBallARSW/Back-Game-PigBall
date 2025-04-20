@@ -44,8 +44,7 @@ public class LobbyController {
     @DeleteMapping("/removeGame/{gameId}")
     public ResponseEntity<Object> removeGame(@PathVariable String gameId) {
         try {
-            gameService.removeGame(gameId);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return new ResponseEntity<>(gameService.removeGame(gameId), HttpStatus.OK);
         } catch (GameException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }

@@ -25,7 +25,8 @@ import org.slf4j.LoggerFactory;
 public class Game implements Runnable, GameObserver {
 
     private static final Logger logger = LoggerFactory.getLogger(Game.class);
-
+    private transient Thread gameThread;
+    private volatile boolean running;
     private SimpMessagingTemplate messagingTemplate;
     private String gameId;
     private String gameName;
@@ -70,10 +71,25 @@ public class Game implements Runnable, GameObserver {
     public void setIdForTest(String id) {
         this.gameId = id;
     }
+    public void start() {
+        if (gameThread == null || !gameThread.isAlive()) {
+            running = true;
+            gameThread = new Thread(this);
+            gameThread.start();
+            logger.info("Hilo del juego iniciado para la partida {}", gameId);
+        }
+    }
+    public void stop() {
+        running = false;
+        if (gameThread != null) {
+            gameThread.interrupt(); // fuerza la interrupción de sleep()
+            logger.info("Hilo del juego detenido para la partida {}", gameId);
+        }
+    }
 
     @Override
     public void run() {
-        while (status != GameStatus.FINISHED && status != GameStatus.ABANDONED) {
+        while (running && status != GameStatus.FINISHED && status != GameStatus.ABANDONED) {
             try {
                 broadcastGameState();
                 TimeUnit.MILLISECONDS.sleep((int) (1000 / FRAME_RATE));
@@ -88,7 +104,7 @@ public class Game implements Runnable, GameObserver {
                 status = GameStatus.FINISHED;
                 try {
                     messagingTemplate.convertAndSend("/topic/finished/" + gameId, GameMapper.toDTO(this));
-                    logger.info("La partida termino, su id era: {}", gameId);
+                    logger.info("La partida terminó, su id era: {}", gameId);
                 } catch (MessagingException e) {
                     logger.error(e.getMessage());
                 }
@@ -339,14 +355,14 @@ public class Game implements Runnable, GameObserver {
             }
         }
         if (lastPlayerOfTheTeam != null) {
-            events.add(new Pair<>(lastPlayerOfTheTeam.getName(), Event.GOAL_SCORED));
+            events.add(new Pair<>(lastPlayerOfTheTeam.getId(), Event.GOAL_SCORED));
         } else{
             lastPlayerOfTheTeam = players.get(0);
-            events.add(new Pair<>(lastPlayerOfTheTeam.getName(), Event.SELF_GOAL_SCORED));
+            events.add(new Pair<>(lastPlayerOfTheTeam.getId(), Event.SELF_GOAL_SCORED));
         }
 
         if (assitantPlayer != null) {
-            events.add(new Pair<>(assitantPlayer.getName(), Event.GOAL_ASSIST));
+            events.add(new Pair<>(assitantPlayer.getId(), Event.GOAL_ASSIST));
         }
 
         try {

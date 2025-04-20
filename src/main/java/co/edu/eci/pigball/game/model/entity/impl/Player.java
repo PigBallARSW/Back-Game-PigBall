@@ -11,14 +11,23 @@ public class Player extends Entity {
     private String name;
     private String sessionId;
     private Integer team;
+    private String id;
     private boolean isKicking;
 
-    public Player(String name, String sessionId, int x, int y, double radius) {
+    public Player(String name,String id, String sessionId, int x, int y, double radius) {
         super(x, y, radius);
         this.name = name;
         this.sessionId = sessionId;
         this.isKicking = false;
+        this.id=id;
     }
+//    public Player(String name,String id, String sessionId, int x, int y, double radius) {
+//        super(x, y, radius);
+//        this.name = name;
+//        this.sessionId = sessionId;
+//        this.isKicking = false;
+//        this.id = id;
+//    }
 
     public void setSessionId(String sessionId) {
         this.sessionId = sessionId;

@@ -29,8 +29,7 @@ public class GameService {
         Game game = new Game("Game 1", "Creator 1", 2, false, messagingTemplate);
         game.setIdForTest("1");
         games.put(game.getGameId(), game);
-        Thread gameThread = new Thread(game);
-        gameThread.start();
+        game.start();
         logger.info("Game created id: " + game.getGameId());
     }
 
@@ -52,8 +51,7 @@ public class GameService {
             throw new GameException("Game ID already exists: " + game.getGameId());
         }
 
-        Thread gameThread = new Thread(game);
-        gameThread.start();
+        game.start();
         logger.info("Game created id: " + game.getGameId());
         return GameMapper.toDTO(game);
     }
@@ -73,7 +71,7 @@ public class GameService {
         return GameMapper.toDTO(games.values());
     }
 
-    public void removeGame(String gameId) throws GameException {
+    public GameDTO removeGame(String gameId) throws GameException {
         if (gameId == null) {
             throw new GameException(GameException.NOT_EMPTY_ID);
         }
@@ -83,6 +81,8 @@ public class GameService {
         }
         logger.info("Game removed id: " + game.getGameId());
         games.remove(gameId);
+        game.stop();
+        return GameMapper.toDTO(game);
     }
 
     public List<Player> addPlayerToGame(String gameId, Player player) throws GameException {
