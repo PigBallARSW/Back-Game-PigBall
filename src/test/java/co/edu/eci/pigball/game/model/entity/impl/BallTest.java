@@ -58,7 +58,7 @@ class BallTest {
 
     @Test
     void testMoveWithCollision() {
-        Player player = new Player("TestPlayer", "session123", BORDER_X / 2, BORDER_Y / 2 + 25, 10.0);
+        Player player = new Player("TestPlayer", "123","session123", BORDER_X / 2, BORDER_Y / 2 + 25, 10.0);
         List<Entity> entities = new ArrayList<>();
         entities.add(player);
         Pair<Double, Double> position = new Pair<>(BORDER_X / 2.0, BORDER_Y / 2.0);

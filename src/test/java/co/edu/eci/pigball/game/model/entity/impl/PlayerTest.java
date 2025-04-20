@@ -20,7 +20,7 @@ class PlayerTest {
 
     @BeforeEach
     void setUp() {
-        player = new Player("TestPlayer", "session123", 100, 100, PLAYER_RADIUS);
+        player = new Player("TestPlayer", "123","session123", 100, 100, PLAYER_RADIUS);
     }
 
     @Test
@@ -46,7 +46,7 @@ class PlayerTest {
 
     @Test
     void testSetPositionWithCollision() {
-        Player otherPlayer = new Player("OtherPlayer", "session456", 150, 150, PLAYER_RADIUS);
+        Player otherPlayer = new Player("OtherPlayer", "123","session456", 150, 150, PLAYER_RADIUS);
         List<Entity> otherPlayers = new ArrayList<>();
         otherPlayers.add(otherPlayer);
         System.out.println(player.getX()+" "+player.getY());
@@ -87,7 +87,7 @@ class PlayerTest {
 
     @Test
     void testMoveWithCollision() {
-        Player otherPlayer = new Player("OtherPlayer", "session456", 160, 160, PLAYER_RADIUS);
+        Player otherPlayer = new Player("OtherPlayer", "123","session456", 160, 160, PLAYER_RADIUS);
         List<Entity> otherPlayers = new ArrayList<>();
         otherPlayers.add(otherPlayer);
         
