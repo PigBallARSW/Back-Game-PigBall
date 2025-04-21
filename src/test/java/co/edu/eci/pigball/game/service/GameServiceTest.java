@@ -15,6 +15,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.model.Movement;
 import co.edu.eci.pigball.game.model.dto.GameDTO;
+import co.edu.eci.pigball.game.model.dto.PlayerDTO;
 import co.edu.eci.pigball.game.model.entity.impl.Player;
 
 @ExtendWith(MockitoExtension.class)
@@ -105,7 +106,8 @@ class GameServiceTest {
     void testAddPlayerToGame() throws GameException {
         GameDTO createdGame = gameService.createGame(gameDTO);
         Player player = new Player("TestPlayer", "123",null, 0, 0, PLAYER_RADIUS);
-        List<Player> players = gameService.addPlayerToGame(createdGame.getId(), player);
+        GameDTO gameDTO = gameService.addPlayerToGame(createdGame.getId(), player);
+        List<PlayerDTO> players = gameDTO.getPlayers();
         assertNotNull(players);
         assertEquals(1, players.size());
         assertEquals("TestPlayer", players.get(0).getName());

@@ -85,14 +85,14 @@ public class GameService {
         return GameMapper.toDTO(game);
     }
 
-    public List<Player> addPlayerToGame(String gameId, Player player) throws GameException {
+    public GameDTO addPlayerToGame(String gameId, Player player) throws GameException {
         Game game = games.get(gameId);
         if (game == null) {
             throw new GameException(GameException.GAME_NOT_FOUND);
         }
         logger.info("Player added with name: " + player.getName() + " to game " + game.getGameId());
         game.addPlayer(player);
-        return game.getAllPlayers();
+        return GameMapper.toDTO(game);
     }
 
     public List<Player> removePlayerFromGame(String gameId, Player player) throws GameException {
