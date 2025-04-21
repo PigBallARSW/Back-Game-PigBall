@@ -39,16 +39,16 @@ public class GameController {
 
     @MessageMapping("/join/{game_id}")
     @SendTo("/topic/players/{game_id}")
-    public List<PlayerDTO> handleNewPlayer(@DestinationVariable("game_id") String gameId, Player player,
+    public GameDTO handleNewPlayer(@DestinationVariable("game_id") String gameId, Player player,
             SimpMessageHeaderAccessor headerAccessor) {
         try {
             String sessionId = headerAccessor.getSessionId();
             player.setSessionId(sessionId);
-            List<Player> players = gameService.addPlayerToGame(gameId, player);
+            GameDTO gameStateAfterPlayer = gameService.addPlayerToGame(gameId, player);
             webSocketEventListener.setANewConnection(sessionId, gameId, player.getName());
-            return (List<PlayerDTO>) PlayerDTO.toDTO(players);
+            return gameStateAfterPlayer;
         } catch (GameException e) {
-            return new ArrayList<>();
+            return null;
         }
     }
 
