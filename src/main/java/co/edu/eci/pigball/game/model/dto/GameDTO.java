@@ -43,4 +43,12 @@ public class GameDTO {
             return false;
         return privateGame;
     }
+
+    @Override
+    public String toString() {
+        return "GameDTO [id=" + id + ", gameName=" + gameName + ", creatorName=" + creatorName + ", maxPlayers="
+                + maxPlayers + ", status=" + status + ", privateGame=" + privateGame + ", creationTime="
+                + creationTime + ", startTime=" + startTime + ", borderX=" + borderX + ", borderY=" + borderY
+                + ", players=" + players + ", ball=" + ball + "]";
+    }
 }
