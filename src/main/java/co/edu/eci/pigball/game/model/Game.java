@@ -100,7 +100,7 @@ public class Game implements Runnable, GameObserver {
 
             Instant actualTime = Instant.now();
 
-            if (startTime != null && actualTime.isAfter(startTime.plusSeconds(300))) {
+            if (startTime != null && actualTime.isAfter(startTime.plusSeconds(60))) {
                 status = GameStatus.FINISHED;
                 try {
                     messagingTemplate.convertAndSend("/topic/finished/" + gameId, GameMapper.toDTO(this));
@@ -349,7 +349,7 @@ public class Game implements Runnable, GameObserver {
             }
         }
         for(Player player : players) {
-            if (lastPlayerOfTheTeam != player && player.getTeam() != team) {
+            if (lastPlayerOfTheTeam != player && player.getTeam() == team) {
                 assitantPlayer = player;   
                 break;
             }
