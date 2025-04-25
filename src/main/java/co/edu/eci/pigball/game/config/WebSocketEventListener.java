@@ -40,9 +40,9 @@ public class WebSocketEventListener {
         String sessionId = accessor.getSessionId();
 
         if (sessionId != null) {
-            logger.info("✅ Nueva conexión STOMP detectada - Session ID: {}", sessionId);
+            logger.info("Nueva conexion STOMP detectada - Session ID: {}", sessionId);
         } else {
-            logger.warn("⚠️ No se pudo obtener Session ID en conexión STOMP");
+            logger.warn("No se pudo obtener Session ID en conexión STOMP");
         }
     }
 
@@ -54,12 +54,12 @@ public class WebSocketEventListener {
         // Intentamos insertar el sessionId solo si el jugador no tenía una sesión
         String existingSession = nameToSession.putIfAbsent(playerName, sessionId);
         if (existingSession == null) {
-            logger.info("✅ Jugador {} conectado con sesión: {}", playerName, sessionId);
+            logger.info("Jugador {} conectado con sesion: {}", playerName, sessionId);
         } else {
             // Si ya había una sesión, actualizamos el mapping y cancelamos la eliminación
             nameToSession.put(playerName, sessionId);
             sessionToPlayer.remove(existingSession);
-            logger.info("🔄 Jugador {} cambió de sesión: {} -> {}", playerName, existingSession, sessionId);
+            logger.info("Jugador {} cambió de sesion: {} -> {}", playerName, existingSession, sessionId);
             cancelDisconnection(playerName);
         }
         // Actualizamos o insertamos la nueva relación sessionId -> (gameId, playerName)
@@ -79,7 +79,7 @@ public class WebSocketEventListener {
                 String gameId = gamePlayerInfo.getFirst();
                 String playerName = gamePlayerInfo.getSecond();
 
-                logger.info("🔴 Sesión desconectada: {} (Jugador: {})", sessionId, playerName);
+                logger.info("Sesion desconectada: {} (Jugador: {}) esperando 30 segundos por posible reconexion", sessionId, playerName);
 
                 // Programar eliminación del jugador después de 30 segundos
                 ScheduledFuture<?> scheduledTask = scheduler.schedule(() -> removePlayerFromGame(gameId, playerName),
@@ -88,7 +88,7 @@ public class WebSocketEventListener {
                 disconnectTimers.put(playerName, scheduledTask);
             }
         } else {
-            logger.warn("⚠️ No se pudo obtener Session ID en desconexión STOMP");
+            logger.warn("No se pudo obtener Session ID en desconexión STOMP");
         }
     }
 
@@ -98,14 +98,14 @@ public class WebSocketEventListener {
     private void removePlayerFromGame(String gameId, String playerName) {
         try {
             gameService.removePlayerFromGame(gameId, playerName);
-            logger.info("❌ Jugador eliminado por inactividad: {}", playerName);
+            logger.info("Jugador eliminado por inactividad: {}", playerName);
             String removedSession = nameToSession.remove(playerName);
             sessionToPlayer.remove(removedSession);
             if (removedSession != null) {
-                logger.info("🔄 Eliminando mapeo de sesión para {}", playerName);
+                logger.info("Eliminando mapeo de sesion para {}", playerName);
             }
         } catch (Exception e) {
-            logger.warn("⚠️ No se pudo eliminar al jugador {}", playerName);
+            logger.warn("No se pudo eliminar al jugador {}", playerName);
         }
     }
 
@@ -116,7 +116,7 @@ public class WebSocketEventListener {
         ScheduledFuture<?> scheduledTask = disconnectTimers.remove(playerName);
         if (scheduledTask != null) {
             scheduledTask.cancel(false);
-            logger.info("✅ Reconexión detectada, cancelando eliminación de {}", playerName);
+            logger.info("Reconexion detectada, cancelando eliminacion de {}", playerName);
         }
     }
 }

@@ -100,7 +100,7 @@ public class Game implements Runnable, GameObserver {
 
             Instant actualTime = Instant.now();
 
-            if (startTime != null && actualTime.isAfter(startTime.plusSeconds(60))) {
+            if (startTime != null && actualTime.isAfter(startTime.plusSeconds(300))) {
                 status = GameStatus.FINISHED;
                 try {
                     messagingTemplate.convertAndSend("/topic/finished/" + gameId, GameMapper.toDTO(this));
@@ -188,7 +188,7 @@ public class Game implements Runnable, GameObserver {
     }
 
     private void assignTeam(Player player) {
-        if (teams.getFirst().getPlayers() < teams.getSecond().getPlayers()) {
+        if (teams.getFirst().getPlayers() <= teams.getSecond().getPlayers()) {
             player.setTeam(0);
             teams.getFirst().addPlayer();
         } else {
@@ -202,12 +202,20 @@ public class Game implements Runnable, GameObserver {
     }
 
     public void removePlayer(String playerName) {
+        int team = players.get(playerName).getTeam();
         players.remove(playerName);
+        System.out.println("Este es el nuevo tamaño de los jugadores:" + players.size());
+        if (team == 0){
+            teams.getFirst().removePlayer();
+        } else{
+            teams.getSecond().removePlayer();
+        }
+        System.out.println(teams.getFirst().getPlayers() + " " + teams.getSecond().getPlayers());
         if (players.size() == 0 && (GameStatus.FINISHED != status || GameStatus.WAITING_FOR_PLAYERS != status)) {
             status = GameStatus.ABANDONED;
-        } else if (players.size() == maxPlayers - 1 && status == GameStatus.WAITING_FOR_PLAYERS) {
+        } else if (status == GameStatus.WAITING_FULL) {
             status = GameStatus.WAITING_FOR_PLAYERS;
-        } else if (players.size() == maxPlayers - 1 && status == GameStatus.IN_PROGRESS) {
+        } else if (status == GameStatus.IN_PROGRESS_FULL) {
             status = GameStatus.IN_PROGRESS;
         }
     }
@@ -289,7 +297,7 @@ public class Game implements Runnable, GameObserver {
     }
 
     public void makeAMove(String name, int dx, int dy, boolean isKicking) {
-        if (status != GameStatus.WAITING_FOR_PLAYERS && status != GameStatus.IN_PROGRESS) {
+        if (status != GameStatus.IN_PROGRESS && status != GameStatus.IN_PROGRESS_FULL) {
             return;
         }
         if (!players.containsKey(name)) {
