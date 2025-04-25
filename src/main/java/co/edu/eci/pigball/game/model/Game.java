@@ -129,8 +129,15 @@ public class Game implements Runnable, GameObserver {
             if (existingPlayer != null) {
                 return handleExistingPlayer(player, existingPlayer);
             }
-            return handleNewPlayer(player);
+            try {
+                return handleNewPlayer(player);
+            } catch (GameException e) {
+                return null;
+            }
         });
+        if (players.get(player.getName()) == null) {
+            throw new GameException(GameException.EXCEEDED_MAX_PLAYERS);
+        }
 
         if (players.size() == maxPlayers && status == GameStatus.WAITING_FOR_PLAYERS) {
             status = GameStatus.WAITING_FULL;
@@ -146,7 +153,7 @@ public class Game implements Runnable, GameObserver {
     }
 
     private void validateMaxPlayers() throws GameException {
-        if (players.size() >= maxPlayers) {
+        if (players.size() > maxPlayers) {
             throw new GameException(GameException.EXCEEDED_MAX_PLAYERS);
         }
     }
@@ -164,7 +171,10 @@ public class Game implements Runnable, GameObserver {
         return player;
     }
 
-    private Player handleNewPlayer(Player player) {
+    private Player handleNewPlayer(Player player) throws GameException {
+        if (players.size() == maxPlayers) {
+            throw new GameException(GameException.EXCEEDED_MAX_PLAYERS);
+        }
         SecureRandom random = new SecureRandom();
         double newX = random.nextDouble(borderX - 40.0) + player.getRadius();
         double newY = random.nextDouble(borderY - 40.0) + player.getRadius();
