@@ -156,7 +156,7 @@ public class GameService {
         if (movement.getPlayer() == null) {
             throw new GameException(GameException.NOT_EMPTY_PLAYER);
         }
-        game.makeAMove(movement.getPlayer(), movement.getDx(), movement.getDy(), movement.isKicking());
+        game.updatePlayerLastMove(movement.getPlayer(), movement.getDx(), movement.getDy(), movement.isKicking());
     }
 
 }

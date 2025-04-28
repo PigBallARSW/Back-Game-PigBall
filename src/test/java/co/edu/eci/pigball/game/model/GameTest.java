@@ -89,7 +89,7 @@ class GameTest {
     }
 
     @Test
-    void testMakeAMove() {
+    void testMakeAMove() throws GameException {
         try {
             game.addPlayer(player1);
             game.startGame();
@@ -100,14 +100,15 @@ class GameTest {
         double initialX = player1.getX();
         double initialY = player1.getY();
 
-        game.makeAMove("player1", 2, 3, false);
+        game.updatePlayerLastMove("player1", 2, 3, false);
+        game.makePlayersMoves();
         // Check that the player moved in the correct direction
         assertTrue(player1.getX() > initialX);
         assertTrue(player1.getY() > initialY);
     }
 
     @Test
-    void testMakeMoveForNewPlayer() {
+    void testMakeMoveForNewPlayer() throws GameException {
         try {
             game.addPlayer(player1);
             game.startGame();
@@ -117,7 +118,8 @@ class GameTest {
         // Store initial position
         double initialX = player1.getX();
         double initialY = player1.getY();
-        game.makeAMove("player1", 1, 1, false);
+        game.updatePlayerLastMove("player1", 1, 1, false);
+        game.makePlayersMoves();
         Player movedPlayer = game.getPlayers().get("player1");
         assertNotNull(movedPlayer);
         // Validate that the player moved in the correct direction

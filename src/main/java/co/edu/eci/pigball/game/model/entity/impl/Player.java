@@ -13,6 +13,9 @@ public class Player extends Entity {
     private Integer team;
     private String id;
     private boolean isKicking;
+    private int lastDx;
+    private int lastDy;
+    private boolean lastIsKicking;
 
     public Player(String name,String id, String sessionId, int x, int y, double radius) {
         super(x, y, radius);
@@ -20,14 +23,17 @@ public class Player extends Entity {
         this.sessionId = sessionId;
         this.isKicking = false;
         this.id=id;
+        this.lastDx = 0;
+        this.lastDy = 0;
+        this.lastIsKicking = false;
     }
-//    public Player(String name,String id, String sessionId, int x, int y, double radius) {
-//        super(x, y, radius);
-//        this.name = name;
-//        this.sessionId = sessionId;
-//        this.isKicking = false;
-//        this.id = id;
-//    }
+
+    public void updatePlayerLastMovement(int dx, int dy, boolean isKicking) {
+        this.lastDx = dx;
+        this.lastDy = dy;
+        this.lastIsKicking = isKicking;
+    }
+
 
     public void setSessionId(String sessionId) {
         this.sessionId = sessionId;
@@ -40,6 +46,7 @@ public class Player extends Entity {
     public void setIsKicking(boolean isKicking) {
         this.isKicking = isKicking;
     }
+    
 
     @Override
     public Pair<Double, Double> validateCoordinates(int borderX, int borderY, Pair<Double, Double> coordinates,
