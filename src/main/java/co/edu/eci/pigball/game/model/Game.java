@@ -43,7 +43,7 @@ public class Game implements Runnable, GameObserver {
     private List<Pair<String,Event>> events;
     private Ball ball;
 
-    private static final int VELOCITY = 1;
+    private static final int VELOCITY = 2;
     private static final double FRAME_RATE = 60;
     public static final int BASE_WIDTH = 1200;
     public static final int BASE_HEIGHT = 900;
@@ -297,6 +297,7 @@ public class Game implements Runnable, GameObserver {
 
     public void broadcastGameState() {
         try {
+            makePlayersMoves();
             makeABallMove();
             messagingTemplate.convertAndSend("/topic/play/" + gameId, GameMapper.toBasicDTO(this));
         } catch (MessagingException e) {
@@ -304,14 +305,25 @@ public class Game implements Runnable, GameObserver {
         }
     }
 
-    public void makeAMove(String name, int dx, int dy, boolean isKicking) {
+    public void updatePlayerLastMove(String playerName, int dx, int dy, boolean isKicking) throws GameException {
+        Player player = players.get(playerName);
+        if (player == null) {
+            throw new GameException(GameException.PLAYER_NOT_FOUND);
+        }
+        player.updatePlayerLastMovement(dx, dy, isKicking);
+    }
+
+    public void makePlayersMoves() {
+        for (String name : players.keySet()) {
+            Player player = players.get(name);
+            makeAMove(player, player.getLastDx(), player.getLastDy(), player.isLastIsKicking());
+        }
+    }
+    
+    public void makeAMove(Player player, int dx, int dy, boolean isKicking) {
         if (status != GameStatus.IN_PROGRESS && status != GameStatus.IN_PROGRESS_FULL) {
             return;
         }
-        if (!players.containsKey(name)) {
-            return;
-        }
-        Player player = players.get(name);
         player.setIsKicking(isKicking);
         double fdx = dx;
         double fdy = dy;
