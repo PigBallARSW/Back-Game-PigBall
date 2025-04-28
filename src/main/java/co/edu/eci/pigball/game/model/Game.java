@@ -214,13 +214,11 @@ public class Game implements Runnable, GameObserver {
     public void removePlayer(String playerName) {
         int team = players.get(playerName).getTeam();
         players.remove(playerName);
-        System.out.println("Este es el nuevo tamaño de los jugadores:" + players.size());
         if (team == 0){
             teams.getFirst().removePlayer();
         } else{
             teams.getSecond().removePlayer();
         }
-        System.out.println(teams.getFirst().getPlayers() + " " + teams.getSecond().getPlayers());
         if (players.size() == 0 && (GameStatus.FINISHED != status || GameStatus.WAITING_FOR_PLAYERS != status)) {
             status = GameStatus.ABANDONED;
         } else if (status == GameStatus.WAITING_FULL) {

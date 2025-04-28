@@ -132,12 +132,10 @@ public class Ball extends Entity {
             if (x - radius < -2 * radius) {
                 notifyGoalScored(1, lastPlayers.getElements());
                 lastPlayers.reset();
-                System.out.println("Gol del equipo 2");
                 return new Pair<>(borderX / 2.0, borderY / 2.0);
             } else if (x + radius > borderX + 2 * radius) {
                 notifyGoalScored(0, lastPlayers.getElements());
                 lastPlayers.reset();
-                System.out.println("Gol del equipo 1");
                 return new Pair<>(borderX / 2.0, borderY / 2.0);
             }
             y = Math.clamp(y, middleY - (borderY * 0.09) + radius, middleY + (borderY * 0.09) - radius);

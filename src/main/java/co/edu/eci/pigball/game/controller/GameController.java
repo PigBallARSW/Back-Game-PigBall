@@ -44,10 +44,8 @@ public class GameController {
         try {
             String sessionId = headerAccessor.getSessionId();
             player.setSessionId(sessionId);
-            System.out.println("Aca estoy");
             GameDTO gameStateAfterPlayer = gameService.addPlayerToGame(gameId, player);
             webSocketEventListener.setANewConnection(sessionId, gameId, player.getName());
-            System.out.println("Llegue aca");
             return gameStateAfterPlayer;
         } catch (GameException e) {
             logger.error("Error al agregar el jugador al juego: " + e.getMessage());
