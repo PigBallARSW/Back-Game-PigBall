@@ -48,6 +48,7 @@ public class GameController {
             webSocketEventListener.setANewConnection(sessionId, gameId, player.getName());
             return gameStateAfterPlayer;
         } catch (GameException e) {
+            logger.error("Error al agregar el jugador al juego: " + e.getMessage());
             return null;
         }
     }

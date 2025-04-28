@@ -129,8 +129,15 @@ public class Game implements Runnable, GameObserver {
             if (existingPlayer != null) {
                 return handleExistingPlayer(player, existingPlayer);
             }
-            return handleNewPlayer(player);
+            try {
+                return handleNewPlayer(player);
+            } catch (GameException e) {
+                return null;
+            }
         });
+        if (players.get(player.getName()) == null) {
+            throw new GameException(GameException.EXCEEDED_MAX_PLAYERS);
+        }
 
         if (players.size() == maxPlayers && status == GameStatus.WAITING_FOR_PLAYERS) {
             status = GameStatus.WAITING_FULL;
@@ -146,7 +153,7 @@ public class Game implements Runnable, GameObserver {
     }
 
     private void validateMaxPlayers() throws GameException {
-        if (players.size() >= maxPlayers) {
+        if (players.size() > maxPlayers) {
             throw new GameException(GameException.EXCEEDED_MAX_PLAYERS);
         }
     }
@@ -164,7 +171,10 @@ public class Game implements Runnable, GameObserver {
         return player;
     }
 
-    private Player handleNewPlayer(Player player) {
+    private Player handleNewPlayer(Player player) throws GameException {
+        if (players.size() == maxPlayers) {
+            throw new GameException(GameException.EXCEEDED_MAX_PLAYERS);
+        }
         SecureRandom random = new SecureRandom();
         double newX = random.nextDouble(borderX - 40.0) + player.getRadius();
         double newY = random.nextDouble(borderY - 40.0) + player.getRadius();
@@ -188,7 +198,7 @@ public class Game implements Runnable, GameObserver {
     }
 
     private void assignTeam(Player player) {
-        if (teams.getFirst().getPlayers() < teams.getSecond().getPlayers()) {
+        if (teams.getFirst().getPlayers() <= teams.getSecond().getPlayers()) {
             player.setTeam(0);
             teams.getFirst().addPlayer();
         } else {
@@ -202,12 +212,18 @@ public class Game implements Runnable, GameObserver {
     }
 
     public void removePlayer(String playerName) {
+        int team = players.get(playerName).getTeam();
         players.remove(playerName);
+        if (team == 0){
+            teams.getFirst().removePlayer();
+        } else{
+            teams.getSecond().removePlayer();
+        }
         if (players.size() == 0 && (GameStatus.FINISHED != status || GameStatus.WAITING_FOR_PLAYERS != status)) {
             status = GameStatus.ABANDONED;
-        } else if (players.size() == maxPlayers - 1 && status == GameStatus.WAITING_FOR_PLAYERS) {
+        } else if (status == GameStatus.WAITING_FULL) {
             status = GameStatus.WAITING_FOR_PLAYERS;
-        } else if (players.size() == maxPlayers - 1 && status == GameStatus.IN_PROGRESS) {
+        } else if (status == GameStatus.IN_PROGRESS_FULL) {
             status = GameStatus.IN_PROGRESS;
         }
     }
@@ -289,7 +305,7 @@ public class Game implements Runnable, GameObserver {
     }
 
     public void makeAMove(String name, int dx, int dy, boolean isKicking) {
-        if (status != GameStatus.WAITING_FOR_PLAYERS && status != GameStatus.IN_PROGRESS) {
+        if (status != GameStatus.IN_PROGRESS && status != GameStatus.IN_PROGRESS_FULL) {
             return;
         }
         if (!players.containsKey(name)) {
@@ -349,7 +365,7 @@ public class Game implements Runnable, GameObserver {
             }
         }
         for(Player player : players) {
-            if (lastPlayerOfTheTeam != player && player.getTeam() != team) {
+            if (lastPlayerOfTheTeam != player && player.getTeam() == team) {
                 assitantPlayer = player;   
                 break;
             }

@@ -49,12 +49,8 @@ class PlayerTest {
         Player otherPlayer = new Player("OtherPlayer", "123","session456", 150, 150, PLAYER_RADIUS);
         List<Entity> otherPlayers = new ArrayList<>();
         otherPlayers.add(otherPlayer);
-        System.out.println(player.getX()+" "+player.getY());
-        System.out.println(otherPlayer.getX()+" "+otherPlayer.getY());
         Pair<Double, Double> newPosition = new Pair<>(140.0, 140.0);
         player.setPosition(BORDER_X, BORDER_Y, newPosition, otherPlayers);
-        System.out.println(player.getX()+" "+player.getY());
-        System.out.println(otherPlayer.getX()+" "+otherPlayer.getY());
         // Position should be adjusted to avoid collision
         assertTrue(Math.abs(player.getX() - 145.0) > PLAYER_RADIUS || 
                   Math.abs(player.getY() - 145.0) > PLAYER_RADIUS);
