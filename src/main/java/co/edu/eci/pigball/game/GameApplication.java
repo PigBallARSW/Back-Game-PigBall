@@ -10,23 +10,19 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class GameApplication {
 
 	public static void main(String[] args) {
-		// Load environment variables from .env file if it exists
+		// Load environment variables from .env file only if not already set
 		try {
 			Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
-			// Set system properties from .env file
-			dotenv.entries().forEach(e -> System.setProperty(e.getKey(), e.getValue()));
+			dotenv.entries().forEach(entry -> {
+				String key = entry.getKey();
+				if (System.getProperty(key) == null && System.getenv(key) == null) {
+					System.setProperty(key, entry.getValue());
+				}
+			});
 		} catch (Exception e) {
 			// Continue without .env file
 		}
-
-		// If SSL is disabled, ensure we're using HTTP
-		if (Boolean.parseBoolean(System.getProperty("server.ssl.enabled", "false"))) {
-			System.setProperty("server.port", "8443");
-		} else {
-			System.setProperty("server.port", "8080");
-		}
-
+	
 		SpringApplication.run(GameApplication.class, args);
 	}
-
 }
