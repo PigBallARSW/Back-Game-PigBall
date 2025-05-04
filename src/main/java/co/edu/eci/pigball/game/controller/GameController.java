@@ -48,7 +48,7 @@ public class GameController {
             webSocketEventListener.setANewConnection(sessionId, gameId, player.getName());
             return gameStateAfterPlayer;
         } catch (GameException e) {
-            logger.error("Error al agregar el jugador al juego: " + e.getMessage());
+            logger.error("Error al agregar el jugador al juego: {}", e.getMessage());
             return null;
         }
     }
@@ -84,7 +84,7 @@ public class GameController {
         try {
             gameService.makeMoveInGame(gameId, movement);
         } catch (GameException e) {
-            logger.error("Error al hacer un movimiento en el juego");
+            logger.error(e.getMessage());
             // Don't throw the exception, just log it
         }
     }

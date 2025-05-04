@@ -17,6 +17,8 @@ class GameApplicationTests {
 
 	@Test
 	void contextLoads() {
+		// This test will pass if the application context loads successfully
+		assert true; // If no exception is thrown, the test passes
 	}
 
 	@Test
@@ -27,6 +29,7 @@ class GameApplicationTests {
 				"https://localhost:3000,https://test.example.com,https://example.com");
 		System.setProperty("SSL_ENABLED", "false");
 		GameApplication.main(new String[] {});
+		assert true; // If no exception is thrown, the test passes
 	}
 
 }

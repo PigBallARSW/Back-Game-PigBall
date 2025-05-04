@@ -106,8 +106,8 @@ class GameServiceTest {
     void testAddPlayerToGame() throws GameException {
         GameDTO createdGame = gameService.createGame(gameDTO);
         Player player = new Player("TestPlayer", "123",null, 0, 0, PLAYER_RADIUS);
-        GameDTO gameDTO = gameService.addPlayerToGame(createdGame.getId(), player);
-        List<PlayerDTO> players = gameDTO.getPlayers();
+        GameDTO gameDTO2 = gameService.addPlayerToGame(createdGame.getId(), player);
+        List<PlayerDTO> players = gameDTO2.getPlayers();
         assertNotNull(players);
         assertEquals(1, players.size());
         assertEquals("TestPlayer", players.get(0).getName());
