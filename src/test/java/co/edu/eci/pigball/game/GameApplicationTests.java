@@ -26,12 +26,13 @@ class GameApplicationTests {
 	@Test
 	void mainMethodTest() {
 		// Set environment variables for testing
-		GameApplication.main(new String[] {});
-		
 		System.setProperty("ALLOWED_ORIGINS_HTTP", "http://localhost:3000,http://example.com");
 		System.setProperty("ALLOWED_ORIGINS_HTTPS",
 				"https://localhost:3000,https://test.example.com,https://example.com");
 		System.setProperty("SSL_ENABLED", "false");
+		
+		GameApplication.main(new String[] {});
+		
 		// Test if the system properties are set correctly
 		assertEquals("http://localhost:3000,http://example.com",
 				System.getProperty("ALLOWED_ORIGINS_HTTP"));
