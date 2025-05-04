@@ -6,6 +6,7 @@ public enum GameStatus {
     STARTING, // Juego en proceso de inicio
     IN_PROGRESS, // Juego en curso
     IN_PROGRESS_FULL, // Juego en curso lleno
+    PAUSED, // Juego en pausa
     FINISHED, // Juego terminado
     ABANDONED; // Juego abandonado
 

@@ -4,6 +4,7 @@ import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -25,7 +26,7 @@ import org.slf4j.LoggerFactory;
 public class Game implements Runnable, GameObserver {
 
     private static final Logger logger = LoggerFactory.getLogger(Game.class);
-    private transient Thread gameThread;
+    private Thread gameThread;
     private volatile boolean running;
     private SimpMessagingTemplate messagingTemplate;
     private String gameId;
@@ -47,6 +48,8 @@ public class Game implements Runnable, GameObserver {
     private static final double FRAME_RATE = 60;
     public static final int BASE_WIDTH = 1200;
     public static final int BASE_HEIGHT = 900;
+    public static final int GAME_TIME = 300; //5 min
+    public static final int GAME_ABANDONED_TIME = 900; //15 min
 
     public Game(String gameName, String creatorName, int maxPlayers, boolean privateGame,
             SimpMessagingTemplate messagingTemplate) {
@@ -61,6 +64,7 @@ public class Game implements Runnable, GameObserver {
         this.messagingTemplate = messagingTemplate;
         this.borderX = BASE_WIDTH + BASE_WIDTH*(maxPlayers - 2)/10;
         this.borderY = BASE_HEIGHT + BASE_HEIGHT*(maxPlayers - 2)/10;
+        logger.info("El tamaño del campo es: {} x {}", borderX, borderY);
         this.teams = new Pair<>(new Team(), new Team());
         this.events = new ArrayList<>();
         this.players = new ConcurrentHashMap<>();
@@ -100,7 +104,7 @@ public class Game implements Runnable, GameObserver {
 
             Instant actualTime = Instant.now();
 
-            if (startTime != null && actualTime.isAfter(startTime.plusSeconds(300))) {
+            if (startTime != null && actualTime.isAfter(startTime.plusSeconds(GAME_TIME))) {
                 status = GameStatus.FINISHED;
                 try {
                     messagingTemplate.convertAndSend("/topic/finished/" + gameId, GameMapper.toDTO(this));
@@ -108,7 +112,7 @@ public class Game implements Runnable, GameObserver {
                 } catch (MessagingException e) {
                     logger.error(e.getMessage());
                 }
-            } else if (creationTime.plusSeconds(1800).isBefore(actualTime)
+            } else if (creationTime.plusSeconds(GAME_ABANDONED_TIME).isBefore(actualTime)
                     && status == GameStatus.WAITING_FOR_PLAYERS) {
                 status = GameStatus.ABANDONED;
                 try {
@@ -314,8 +318,8 @@ public class Game implements Runnable, GameObserver {
     }
 
     public void makePlayersMoves() {
-        for (String name : players.keySet()) {
-            Player player = players.get(name);
+        for (Map.Entry<String, Player> entry : players.entrySet()) {
+            Player player = entry.getValue();
             makeAMove(player, player.getLastDx(), player.getLastDy(), player.isLastIsKicking());
         }
     }
@@ -396,8 +400,14 @@ public class Game implements Runnable, GameObserver {
         try {
             messagingTemplate.convertAndSend("/topic/goal/" + gameId, GameMapper.toDTO(this));
             ubicatePlayersAndBallInTheField();
-            Thread.sleep(100);
+            status = GameStatus.PAUSED;
+            Thread.sleep(2000);
             this.ball.setLastGoalTeam(-1);
+            if (players.size() == maxPlayers) {
+                status = GameStatus.IN_PROGRESS_FULL;
+            } else {
+                status = GameStatus.IN_PROGRESS;
+            }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
