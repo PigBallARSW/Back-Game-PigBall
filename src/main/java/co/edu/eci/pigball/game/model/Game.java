@@ -4,24 +4,30 @@ import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import co.edu.eci.pigball.game.exception.GameException;
-import co.edu.eci.pigball.game.java.Pair;
 import co.edu.eci.pigball.game.model.dto.GameDTO;
+import co.edu.eci.pigball.game.model.entity.impl.Ball;
+import co.edu.eci.pigball.game.model.entity.impl.Player;
+import co.edu.eci.pigball.game.model.mapper.GameMapper;
+import co.edu.eci.pigball.game.utility.Pair;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Getter
-public class Game implements Runnable {
+public class Game implements Runnable, GameObserver {
 
     private static final Logger logger = LoggerFactory.getLogger(Game.class);
-
+    private Thread gameThread;
+    private volatile boolean running;
     private SimpMessagingTemplate messagingTemplate;
     private String gameId;
     private String gameName;
@@ -30,13 +36,20 @@ public class Game implements Runnable {
     private GameStatus status;
     private boolean privateGame;
     private Instant creationTime;
+    private Instant startTime;
     private int borderX;
     private int borderY;
     private Pair<Team, Team> teams;
     private ConcurrentHashMap<String, Player> players;
+    private List<Pair<String,Event>> events;
+    private Ball ball;
 
-    private static final int VELOCITY = 5;
+    private static final int VELOCITY = 2;
     private static final double FRAME_RATE = 60;
+    public static final int BASE_WIDTH = 1200;
+    public static final int BASE_HEIGHT = 900;
+    public static final int GAME_TIME = 300; //5 min
+    public static final int GAME_ABANDONED_TIME = 900; //15 min
 
     public Game(String gameName, String creatorName, int maxPlayers, boolean privateGame,
             SimpMessagingTemplate messagingTemplate) {
@@ -47,20 +60,40 @@ public class Game implements Runnable {
         this.status = GameStatus.WAITING_FOR_PLAYERS;
         this.privateGame = privateGame;
         this.creationTime = Instant.now();
+        this.startTime = null;
         this.messagingTemplate = messagingTemplate;
-        this.borderX = 1200;
-        this.borderY = 900;
+        this.borderX = BASE_WIDTH + BASE_WIDTH*(maxPlayers - 2)/10;
+        this.borderY = BASE_HEIGHT + BASE_HEIGHT*(maxPlayers - 2)/10;
+        logger.info("El tamaño del campo es: {} x {}", borderX, borderY);
         this.teams = new Pair<>(new Team(), new Team());
+        this.events = new ArrayList<>();
         this.players = new ConcurrentHashMap<>();
+        this.ball = new Ball(this.borderX / 2, this.borderY / 2, 0, 0, 10.0);
+        this.ball.addObserver(this);
     }
 
     public void setIdForTest(String id) {
         this.gameId = id;
     }
+    public void start() {
+        if (gameThread == null || !gameThread.isAlive()) {
+            running = true;
+            gameThread = new Thread(this);
+            gameThread.start();
+            logger.info("Hilo del juego iniciado para la partida {}", gameId);
+        }
+    }
+    public void stop() {
+        running = false;
+        if (gameThread != null) {
+            gameThread.interrupt(); // fuerza la interrupción de sleep()
+            logger.info("Hilo del juego detenido para la partida {}", gameId);
+        }
+    }
 
     @Override
     public void run() {
-        while (status != GameStatus.FINISHED && status != GameStatus.ABANDONED) {
+        while (running && status != GameStatus.FINISHED && status != GameStatus.ABANDONED) {
             try {
                 broadcastGameState();
                 TimeUnit.MILLISECONDS.sleep((int) (1000 / FRAME_RATE));
@@ -68,14 +101,27 @@ public class Game implements Runnable {
                 Thread.currentThread().interrupt();
                 break;
             }
-        }
-    }
 
-    public void broadcastGameState() {
-        try {
-            messagingTemplate.convertAndSend("/topic/play/" + gameId, GameDTO.toDTO(this));
-        } catch (Exception e) {
-            logger.error("Error al enviar el estado del juego");
+            Instant actualTime = Instant.now();
+
+            if (startTime != null && actualTime.isAfter(startTime.plusSeconds(GAME_TIME))) {
+                status = GameStatus.FINISHED;
+                try {
+                    messagingTemplate.convertAndSend("/topic/finished/" + gameId, GameMapper.toDTO(this));
+                    logger.info("La partida terminó, su id era: {}", gameId);
+                } catch (MessagingException e) {
+                    logger.error(e.getMessage());
+                }
+            } else if (creationTime.plusSeconds(GAME_ABANDONED_TIME).isBefore(actualTime)
+                    && status == GameStatus.WAITING_FOR_PLAYERS) {
+                status = GameStatus.ABANDONED;
+                try {
+                    messagingTemplate.convertAndSend("/topic/abandoned/" + gameId, GameMapper.toDTO(this));
+                    logger.info("La partida ha sido abandonada por inactividad, su id era: {}", gameId);
+                } catch (MessagingException e) {
+                    logger.error(e.getMessage());
+                }
+            }
         }
     }
 
@@ -87,8 +133,21 @@ public class Game implements Runnable {
             if (existingPlayer != null) {
                 return handleExistingPlayer(player, existingPlayer);
             }
-            return handleNewPlayer(player);
+            try {
+                return handleNewPlayer(player);
+            } catch (GameException e) {
+                return null;
+            }
         });
+        if (players.get(player.getName()) == null) {
+            throw new GameException(GameException.EXCEEDED_MAX_PLAYERS);
+        }
+
+        if (players.size() == maxPlayers && status == GameStatus.WAITING_FOR_PLAYERS) {
+            status = GameStatus.WAITING_FULL;
+        } else if (players.size() == maxPlayers && status == GameStatus.IN_PROGRESS) {
+            status = GameStatus.IN_PROGRESS_FULL;
+        }
     }
 
     private void validatePlayerTeam(Player player) throws GameException {
@@ -98,29 +157,34 @@ public class Game implements Runnable {
     }
 
     private void validateMaxPlayers() throws GameException {
-        if (players.size() >= maxPlayers) {
+        if (players.size() > maxPlayers) {
             throw new GameException(GameException.EXCEEDED_MAX_PLAYERS);
         }
     }
 
     private Player handleExistingPlayer(Player player, Player existingPlayer) {
-        player.setPosition(borderX, borderY, existingPlayer.getX(), existingPlayer.getY());
+        Pair<Double, Double> coordinates = new Pair<>(existingPlayer.getX(), existingPlayer.getY());
+        player.setPosition(borderX, borderY, coordinates, new ArrayList<>());
 
         if (player.getTeam() == null) {
             player.setTeam(existingPlayer.getTeam());
         } else if (!player.getTeam().equals(existingPlayer.getTeam())) {
             updateTeamCounts(existingPlayer.getTeam());
         }
+        player.setRadius(20.0);
         return player;
     }
 
-    private Player handleNewPlayer(Player player) {
+    private Player handleNewPlayer(Player player) throws GameException {
+        if (players.size() == maxPlayers) {
+            throw new GameException(GameException.EXCEEDED_MAX_PLAYERS);
+        }
         SecureRandom random = new SecureRandom();
-        int newX = random.nextInt(borderX - 40) + 20;
-        int newY = random.nextInt(borderY - 40) + 20;
-
-        player.setPosition(borderX, borderY, newX, newY);
-
+        double newX = random.nextDouble(borderX - 40.0) + player.getRadius();
+        double newY = random.nextDouble(borderY - 40.0) + player.getRadius();
+        Pair<Double, Double> coordinates = new Pair<>(newX, newY);
+        player.setPosition(borderX, borderY, coordinates, new ArrayList<>());
+        player.setRadius(20.0);
         if (player.getTeam() == null) {
             assignTeam(player);
         }
@@ -138,7 +202,7 @@ public class Game implements Runnable {
     }
 
     private void assignTeam(Player player) {
-        if (teams.getFirst().getPlayers() < teams.getSecond().getPlayers()) {
+        if (teams.getFirst().getPlayers() <= teams.getSecond().getPlayers()) {
             player.setTeam(0);
             teams.getFirst().addPlayer();
         } else {
@@ -148,11 +212,24 @@ public class Game implements Runnable {
     }
 
     public void removePlayer(Player player) {
-        players.remove(player.getName());
+        removePlayer(player.getName());
     }
 
     public void removePlayer(String playerName) {
+        int team = players.get(playerName).getTeam();
         players.remove(playerName);
+        if (team == 0){
+            teams.getFirst().removePlayer();
+        } else{
+            teams.getSecond().removePlayer();
+        }
+        if (players.size() == 0 && (GameStatus.FINISHED != status || GameStatus.WAITING_FOR_PLAYERS != status)) {
+            status = GameStatus.ABANDONED;
+        } else if (status == GameStatus.WAITING_FULL) {
+            status = GameStatus.WAITING_FOR_PLAYERS;
+        } else if (status == GameStatus.IN_PROGRESS_FULL) {
+            status = GameStatus.IN_PROGRESS;
+        }
     }
 
     public List<Player> getAllPlayers() {
@@ -160,43 +237,98 @@ public class Game implements Runnable {
     }
 
     public GameDTO startGame() throws GameException {
-        status = GameStatus.STARTING;
-        int ubicatedPlayersTeamOne = 0;
-        int ubicatedPlayersTeamTwo = 0;
-        for (Player player : players.values()) {
-            if (player.getTeam() == 0) {
-                int x = ubicatedPlayersTeamOne % 2 == 0 ? 5 : 0;
-                int y = (((borderY - 40) / (maxPlayers / 2)) * ubicatedPlayersTeamOne) + 5;
-                player.setPosition(borderX, borderY, x, y);
-                ubicatedPlayersTeamOne++;
-            } else {
-                int x = ubicatedPlayersTeamTwo % 2 == 0 ? borderX - 40 : borderX - 5;
-                int y = (((borderY - 40) / (maxPlayers / 2)) * ubicatedPlayersTeamTwo) + 5;
-                player.setPosition(borderX, borderY, x, y);
-                ubicatedPlayersTeamTwo++;
-            }
-        }
 
+        status = GameStatus.STARTING;
+        ubicatePlayersAndBallInTheField();
         try {
             Thread.sleep(5000);
             status = GameStatus.IN_PROGRESS;
+            startTime = Instant.now();
+            logger.info("La partida ha empezado su id es: {}", gameId);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new GameException(GameException.GAME_START_INTERRUPTED);
         }
-        return GameDTO.toDTO(this);
+        return GameMapper.toDTO(this);
     }
 
-    public void makeAMove(String name, int dx, int dy) {
-        if (status != GameStatus.WAITING_FOR_PLAYERS && status != GameStatus.IN_PROGRESS) {
+    private void ubicatePlayersAndBallInTheField() {
+        this.ball.setVelocity(0, 0);
+        this.ball.setPosition(borderX, borderY, new Pair<>(borderX / 2.0, borderY / 2.0), new ArrayList<>());
+        int ubicatedPlayersTeamOne = 0;
+        int ubicatedPlayersTeamTwo = 0;
+        for (Player player : players.values()) {
+            Pair<Double, Double> startPosition = getStartPosition(player, ubicatedPlayersTeamOne,
+                    ubicatedPlayersTeamTwo);
+            Pair<Double, Double> coordinates = new Pair<>(startPosition.getFirst(), startPosition.getSecond());
+            if (player.getTeam() == 0) {
+                ubicatedPlayersTeamOne++;
+            } else {
+                ubicatedPlayersTeamTwo++;
+            }
+            player.setPosition(borderX, borderY, coordinates, new ArrayList<>());
+        }
+    }
+
+    private Pair<Double, Double> getStartPosition(Player player, int ubicatedPlayersTeamOne,
+            int ubicatedPlayersTeamTwo) {
+        if (player.getTeam() == 0) {
+            double baseX = 3 * player.getRadius();
+            double baseY = 3 * player.getRadius();
+            double x = ubicatedPlayersTeamOne % 2 == 0 ? baseX : baseX + (3 * player.getRadius());
+            double y = 0;
+            if (maxPlayers == 2) {
+                y = borderY / 2.0;
+            } else {
+                y = (((borderY - (2.0 * baseY)) / ((maxPlayers / 2.0) - 1.0)) * ubicatedPlayersTeamOne) + baseY;
+            }
+            logger.info("Player team 0: {} set to position {}, {}", player.getName(), x, y);
+            return new Pair<>(x, y);
+        } else {
+            double baseX = borderX - (3 * player.getRadius());
+            double baseY = 3 * player.getRadius();
+            double x = ubicatedPlayersTeamTwo % 2 == 0 ? baseX : baseX - (3 * player.getRadius());
+            double y = 0;
+            if (maxPlayers == 2) {
+                y = borderY / 2.0;
+            } else {
+                y = (((borderY - (2.0 * baseY)) / ((maxPlayers / 2.0) - 1.0)) * ubicatedPlayersTeamTwo) + baseY;
+            }
+            logger.info("Player team 1: {} set to position {}, {}", player.getName(), x, y);
+            return new Pair<>(x, y);
+        }
+    }
+
+    public void broadcastGameState() {
+        try {
+            makePlayersMoves();
+            makeABallMove();
+            messagingTemplate.convertAndSend("/topic/play/" + gameId, GameMapper.toBasicDTO(this));
+        } catch (MessagingException e) {
+            logger.error(e.getMessage());
+        }
+    }
+
+    public void updatePlayerLastMove(String playerName, int dx, int dy, boolean isKicking) throws GameException {
+        Player player = players.get(playerName);
+        if (player == null) {
+            throw new GameException(GameException.PLAYER_NOT_FOUND);
+        }
+        player.updatePlayerLastMovement(dx, dy, isKicking);
+    }
+
+    public void makePlayersMoves() {
+        for (Map.Entry<String, Player> entry : players.entrySet()) {
+            Player player = entry.getValue();
+            makeAMove(player, player.getLastDx(), player.getLastDy(), player.isLastIsKicking());
+        }
+    }
+    
+    public void makeAMove(Player player, int dx, int dy, boolean isKicking) {
+        if (status != GameStatus.IN_PROGRESS && status != GameStatus.IN_PROGRESS_FULL) {
             return;
         }
-        if (!players.containsKey(name)) {
-            return;
-        }
-
-        Player player = players.get(name);
-
+        player.setIsKicking(isKicking);
         double fdx = dx;
         double fdy = dy;
         double magnitude = Math.sqrt(fdx * fdx + fdy * fdy);
@@ -206,9 +338,78 @@ public class Game implements Runnable {
         }
         // Uso de Delta Time
         double dt = 100.0 / FRAME_RATE; // Delta Time basado en el framerate
-        double adjustedVelocity = VELOCITY * dt;
-        player.move(borderX, borderY, (int) (fdx * adjustedVelocity), (int) (fdy * adjustedVelocity),
+
+        double adjustedVelocity = !player.isKicking() ? VELOCITY * dt  : VELOCITY * 0.75 * dt;
+        Pair<Double, Double> movement = new Pair<>(fdx * adjustedVelocity, fdy * adjustedVelocity);
+        player.move(borderX, borderY, movement, new ArrayList<>(players.values()));
+    }
+
+    public void makeABallMove() {
+        // dt en segundos (FRAME_RATE es frames por segundo)
+        double dt = 1.0 / FRAME_RATE;
+        // Coeficiente de fricción (ajústalo según la sensación que busques)
+        double frictionCoefficient = 1.5;
+        // Obtener velocidades actuales de la pelota
+        double ballVelocityX = ball.getVelocityX();
+        double ballVelocityY = ball.getVelocityY();
+        // Calcular el factor de fricción para este frame
+        double frictionFactor = 1 - frictionCoefficient * dt;
+        // Aplicar la fricción a las velocidades
+        ball.setVelocity(ballVelocityX * frictionFactor, ballVelocityY * frictionFactor);
+        // Mover la pelota usando la velocidad actualizada y dt para un desplazamiento
+        // correcto
+        ball.move(borderX, borderY, new Pair<>(ball.getVelocityX() * dt, ball.getVelocityY() * dt),
                 new ArrayList<>(players.values()));
     }
 
+    @Override
+    public void onGoalScored(int team, List<Player> players) {
+        if (team == 0) {
+            teams.getFirst().increaseScore();
+        } else {
+            teams.getSecond().increaseScore();
+        }
+
+        // Search the last player that touch the ball
+        Player lastPlayerOfTheTeam = null;
+        Player assitantPlayer = null;
+
+        for(Player player : players) {
+            if (player.getTeam() == team) {
+                lastPlayerOfTheTeam = player;
+                break;   
+            }
+        }
+        for(Player player : players) {
+            if (lastPlayerOfTheTeam != player && player.getTeam() == team) {
+                assitantPlayer = player;   
+                break;
+            }
+        }
+        if (lastPlayerOfTheTeam != null) {
+            events.add(new Pair<>(lastPlayerOfTheTeam.getId(), Event.GOAL_SCORED));
+        } else{
+            lastPlayerOfTheTeam = players.get(0);
+            events.add(new Pair<>(lastPlayerOfTheTeam.getId(), Event.SELF_GOAL_SCORED));
+        }
+
+        if (assitantPlayer != null) {
+            events.add(new Pair<>(assitantPlayer.getId(), Event.GOAL_ASSIST));
+        }
+
+        try {
+            messagingTemplate.convertAndSend("/topic/goal/" + gameId, GameMapper.toDTO(this));
+            ubicatePlayersAndBallInTheField();
+            status = GameStatus.PAUSED;
+            Thread.sleep(2000);
+            this.ball.setLastGoalTeam(-1);
+            if (players.size() == maxPlayers) {
+                status = GameStatus.IN_PROGRESS_FULL;
+            } else {
+                status = GameStatus.IN_PROGRESS;
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
 }

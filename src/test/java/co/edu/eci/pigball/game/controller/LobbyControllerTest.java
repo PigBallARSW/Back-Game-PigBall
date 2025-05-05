@@ -99,12 +99,12 @@ class LobbyControllerTest {
 
     @Test
     void testRemoveGameSuccess() throws GameException {
-        doNothing().when(gameService).removeGame(gameId);
+        when(gameService.removeGame(gameId)).thenReturn(gameDTO);
 
         ResponseEntity<?> response = lobbyController.removeGame(gameId);
 
         assertNotNull(response);
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         verify(gameService).removeGame(gameId);
     }
 

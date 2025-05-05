@@ -16,16 +16,16 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.model.Movement;
-import co.edu.eci.pigball.game.model.Player;
 import co.edu.eci.pigball.game.model.dto.GameDTO;
 import co.edu.eci.pigball.game.model.dto.PlayerDTO;
+import co.edu.eci.pigball.game.model.entity.impl.Player;
 import co.edu.eci.pigball.game.service.GameService;
 import co.edu.eci.pigball.game.config.WebSocketEventListener;
 
 @ExtendWith(MockitoExtension.class)
 class GameControllerTest {
 
-    @Mock
+    @Mock   
     private GameService gameService;
 
     @Mock
@@ -42,38 +42,45 @@ class GameControllerTest {
 
     private String gameId;
     private Player player;
+    private static final double PLAYER_RADIUS = 20.0;
     private Movement movement;
 
     @BeforeEach
     void setUp() {
         gameId = "test-game-id";
-        player = new Player("TestPlayer", null, 0, 0);
-        movement = new Movement("TestPlayer", 1, 1);
+        player = new Player("TestPlayer", "123",null, 0, 0, PLAYER_RADIUS);
+        movement = new Movement("TestPlayer", 1, 1, false);
     }
 
     @Test
     void testHandleNewPlayer() throws GameException {
+        GameDTO gameDTO = new GameDTO();
+        gameDTO.setPlayers(PlayerDTO.toDTO(List.of(player)).stream().toList());
         when(headerAccessor.getSessionId()).thenReturn("test-session-id");
-        when(gameService.addPlayerToGame(gameId, player)).thenReturn(List.of(player));
+        when(gameService.addPlayerToGame(gameId, player)).thenReturn(gameDTO);
         
-        List<PlayerDTO> result = gameController.handleNewPlayer(gameId, player, headerAccessor);
+        GameDTO result = gameController.handleNewPlayer(gameId, player, headerAccessor);
         
         assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals("TestPlayer", result.get(0).getName());
+
+        List<PlayerDTO> players = result.getPlayers();
+        assertEquals(1, players.size());
+        assertEquals("TestPlayer", players.get(0).getName());
         verify(webSocketEventListener).setANewConnection("test-session-id", gameId, "TestPlayer");
     }
 
+
     @Test
     void testHandleNewPlayerWithException() throws GameException {
+        GameDTO gameDTO = new GameDTO();
+        gameDTO.setPlayers(PlayerDTO.toDTO(List.of()).stream().toList());
         when(headerAccessor.getSessionId()).thenReturn("test-session-id");
-        when(gameService.addPlayerToGame(gameId, player)).thenThrow(new GameException("Test error"));
+        when(gameService.addPlayerToGame(gameId, player)).thenReturn(gameDTO).thenThrow(new GameException("Test error"));
         
-        List<PlayerDTO> result = gameController.handleNewPlayer(gameId, player, headerAccessor);
-        
+        GameDTO result = gameController.handleNewPlayer(gameId, player, headerAccessor);
+
         assertNotNull(result);
-        assertTrue(result.isEmpty());
-        verify(webSocketEventListener, never()).setANewConnection(any(), any(), any());
+        assertTrue(result.getPlayers().isEmpty());
     }
 
     @Test

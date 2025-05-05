@@ -1,18 +1,14 @@
 package co.edu.eci.pigball.game.model;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Team {
     private AtomicInteger score;
     private AtomicInteger players;
-    private LinkedList<String> events;
 
     public Team() {
         score = new AtomicInteger(0);
         players = new AtomicInteger(0);
-        events = new LinkedList<>();
     }
 
     public int getScore() {
@@ -33,13 +29,5 @@ public class Team {
 
     public int removePlayer() {
         return players.decrementAndGet();
-    }
-
-    public void addEvent(String event) {
-        events.add(event);
-    }
-
-    public List<String> getEvents() {
-        return events;
     }
 }

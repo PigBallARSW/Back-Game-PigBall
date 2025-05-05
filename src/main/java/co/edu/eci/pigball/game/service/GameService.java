@@ -12,8 +12,9 @@ import org.slf4j.LoggerFactory;
 import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.model.Game;
 import co.edu.eci.pigball.game.model.Movement;
-import co.edu.eci.pigball.game.model.Player;
 import co.edu.eci.pigball.game.model.dto.GameDTO;
+import co.edu.eci.pigball.game.model.entity.impl.Player;
+import co.edu.eci.pigball.game.model.mapper.GameMapper;
 
 @Service
 public class GameService {
@@ -25,11 +26,10 @@ public class GameService {
     public GameService(SimpMessagingTemplate messagingTemplate) {
         this.messagingTemplate = messagingTemplate;
         this.games = new ConcurrentHashMap<>();
-        Game game = new Game("Game 1", "Creator 1", 4, false, messagingTemplate);
+        Game game = new Game("Game 1", "Creator 1", 2, false, messagingTemplate);
         game.setIdForTest("1");
         games.put(game.getGameId(), game);
-        Thread gameThread = new Thread(game);
-        gameThread.start();
+        game.start();
         logger.info("Game created id: " + game.getGameId());
     }
 
@@ -51,10 +51,9 @@ public class GameService {
             throw new GameException("Game ID already exists: " + game.getGameId());
         }
 
-        Thread gameThread = new Thread(game);
-        gameThread.start();
+        game.start();
         logger.info("Game created id: " + game.getGameId());
-        return GameDTO.toDTO(game);
+        return GameMapper.toDTO(game);
     }
 
     public GameDTO getGame(String gameId) throws GameException {
@@ -65,14 +64,14 @@ public class GameService {
         if (game == null) {
             throw new GameException(GameException.GAME_NOT_FOUND);
         }
-        return GameDTO.toDTO(game);
+        return GameMapper.toDTO(game);
     }
 
     public Collection<GameDTO> getAllGames() {
-        return GameDTO.toDTO(games.values());
+        return GameMapper.toDTO(games.values());
     }
 
-    public void removeGame(String gameId) throws GameException {
+    public GameDTO removeGame(String gameId) throws GameException {
         if (gameId == null) {
             throw new GameException(GameException.NOT_EMPTY_ID);
         }
@@ -82,16 +81,18 @@ public class GameService {
         }
         logger.info("Game removed id: " + game.getGameId());
         games.remove(gameId);
+        game.stop();
+        return GameMapper.toDTO(game);
     }
 
-    public List<Player> addPlayerToGame(String gameId, Player player) throws GameException {
+    public GameDTO addPlayerToGame(String gameId, Player player) throws GameException {
         Game game = games.get(gameId);
         if (game == null) {
             throw new GameException(GameException.GAME_NOT_FOUND);
         }
         logger.info("Player added with name: " + player.getName() + " to game " + game.getGameId());
         game.addPlayer(player);
-        return game.getAllPlayers();
+        return GameMapper.toDTO(game);
     }
 
     public List<Player> removePlayerFromGame(String gameId, Player player) throws GameException {
@@ -155,7 +156,7 @@ public class GameService {
         if (movement.getPlayer() == null) {
             throw new GameException(GameException.NOT_EMPTY_PLAYER);
         }
-        game.makeAMove(movement.getPlayer(), movement.getDx(), movement.getDy());
+        game.updatePlayerLastMove(movement.getPlayer(), movement.getDx(), movement.getDy(), movement.isKicking());
     }
 
 }

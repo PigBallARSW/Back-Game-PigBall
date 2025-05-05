@@ -13,9 +13,9 @@ import org.springframework.stereotype.Controller;
 
 import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.model.Movement;
-import co.edu.eci.pigball.game.model.Player;
 import co.edu.eci.pigball.game.model.dto.GameDTO;
 import co.edu.eci.pigball.game.model.dto.PlayerDTO;
+import co.edu.eci.pigball.game.model.entity.impl.Player;
 import co.edu.eci.pigball.game.service.GameService;
 import lombok.Getter;
 import lombok.Setter;
@@ -39,16 +39,17 @@ public class GameController {
 
     @MessageMapping("/join/{game_id}")
     @SendTo("/topic/players/{game_id}")
-    public List<PlayerDTO> handleNewPlayer(@DestinationVariable("game_id") String gameId, Player player,
+    public GameDTO handleNewPlayer(@DestinationVariable("game_id") String gameId, Player player,
             SimpMessageHeaderAccessor headerAccessor) {
         try {
             String sessionId = headerAccessor.getSessionId();
             player.setSessionId(sessionId);
-            List<Player> players = gameService.addPlayerToGame(gameId, player);
+            GameDTO gameStateAfterPlayer = gameService.addPlayerToGame(gameId, player);
             webSocketEventListener.setANewConnection(sessionId, gameId, player.getName());
-            return (List<PlayerDTO>) PlayerDTO.toDTO(players);
+            return gameStateAfterPlayer;
         } catch (GameException e) {
-            return new ArrayList<>();
+            logger.error("Error al agregar el jugador al juego: {}", e.getMessage());
+            return null;
         }
     }
 
@@ -83,7 +84,7 @@ public class GameController {
         try {
             gameService.makeMoveInGame(gameId, movement);
         } catch (GameException e) {
-            logger.error("Error al hacer un movimiento en el juego");
+            logger.error(e.getMessage());
             // Don't throw the exception, just log it
         }
     }
