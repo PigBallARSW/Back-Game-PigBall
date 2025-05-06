@@ -26,11 +26,26 @@ public class GameService {
     public GameService(SimpMessagingTemplate messagingTemplate) {
         this.messagingTemplate = messagingTemplate;
         this.games = new ConcurrentHashMap<>();
-        Game game = new Game("Game 1", "Creator 1", 2, false, messagingTemplate);
-        game.setIdForTest("1");
-        games.put(game.getGameId(), game);
-        game.start();
-        logger.info("Game created id: " + game.getGameId());
+        Game game1 = new Game("Game 1", "Creator 1", 20, false, messagingTemplate);
+        Game game2 = new Game("Game 2", "Creator 2", 20, false, messagingTemplate);
+        Game game3 = new Game("Game 3", "Creator 3", 20, false, messagingTemplate);
+        Game game4 = new Game("Game 4", "Creator 4", 20, false, messagingTemplate);
+        game1.setIdForTest("1");
+        games.put(game1.getGameId(), game1);
+        game1.start();
+        logger.info("Game created id: " + game1.getGameId());
+        game2.setIdForTest("2");
+        games.put(game2.getGameId(), game2);
+        game2.start();
+        logger.info("Game created id: " + game2.getGameId());
+        game3.setIdForTest("3");
+        games.put(game3.getGameId(), game3);
+        game3.start();
+        logger.info("Game created id: " + game3.getGameId());
+        game4.setIdForTest("4");
+        games.put(game4.getGameId(), game4);
+        game4.start();
+        logger.info("Game created id: " + game4.getGameId());
     }
 
     public GameDTO createGame(GameDTO gameDTO) throws GameException {

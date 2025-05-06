@@ -237,7 +237,9 @@ public class Game implements Runnable, GameObserver {
     }
 
     public GameDTO startGame() throws GameException {
-
+        if (status != GameStatus.WAITING_FOR_PLAYERS && status != GameStatus.WAITING_FULL) {
+            throw new GameException(GameException.GAME_ALREADY_STARTED);
+        }
         status = GameStatus.STARTING;
         ubicatePlayersAndBallInTheField();
         try {
