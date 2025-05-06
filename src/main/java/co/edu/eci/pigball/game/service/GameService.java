@@ -30,6 +30,7 @@ public class GameService {
         Game game2 = new Game("Game 2", "Creator 2", 20, false, messagingTemplate);
         Game game3 = new Game("Game 3", "Creator 3", 20, false, messagingTemplate);
         Game game4 = new Game("Game 4", "Creator 4", 20, false, messagingTemplate);
+        Game game5 = new Game("Game 5", "Creator 5", 20, false, messagingTemplate);
         game1.setIdForTest("1");
         games.put(game1.getGameId(), game1);
         game1.start();
@@ -46,6 +47,10 @@ public class GameService {
         games.put(game4.getGameId(), game4);
         game4.start();
         logger.info("Game created id: " + game4.getGameId());
+        game5.setIdForTest("5");
+        games.put(game5.getGameId(), game5);
+        game5.start();
+        logger.info("Game created id: " + game5.getGameId());
     }
 
     public GameDTO createGame(GameDTO gameDTO) throws GameException {
