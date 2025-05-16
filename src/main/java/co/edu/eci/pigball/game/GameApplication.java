@@ -16,6 +16,7 @@ public class GameApplication {
 			dotenv.entries().forEach(entry -> {
 				String key = entry.getKey();
 				if (System.getProperty(key) == null && System.getenv(key) == null) {
+					System.out.println("Setting system property: " + key + "=" + entry.getValue());
 					System.setProperty(key, entry.getValue());
 				}
 			});
