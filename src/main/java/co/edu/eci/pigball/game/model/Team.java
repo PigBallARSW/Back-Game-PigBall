@@ -1,7 +1,9 @@
 package co.edu.eci.pigball.game.model;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import lombok.Setter;
 
+import java.util.concurrent.atomic.AtomicInteger;
+@Setter
 public class Team {
     private AtomicInteger score;
     private AtomicInteger players;
