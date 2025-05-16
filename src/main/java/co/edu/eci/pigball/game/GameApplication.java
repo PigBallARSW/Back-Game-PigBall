@@ -21,9 +21,10 @@ public class GameApplication {
 			Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
 			dotenv.entries().forEach(entry -> {
 				String key = entry.getKey();
+				
+				// Only set the system property if it is not already set
+				logger.info("Setting system property: {}={}", key, entry.getValue());
 				if (System.getProperty(key) == null && System.getenv(key) == null) {
-					// Only set the system property if it is not already set
-					logger.info("Setting system property: {}={}", key, entry.getValue());
 					System.setProperty(key, entry.getValue());
 				}
 			});
