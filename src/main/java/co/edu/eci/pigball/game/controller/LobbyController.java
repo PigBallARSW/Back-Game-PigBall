@@ -21,7 +21,7 @@ public class LobbyController {
     }
 
     @GetMapping("/health")
-    public boolean getMethodName(@RequestParam String param) {
+    public boolean getMethodName() {
         return true;
     }
     
