@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.*;
 import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.model.dto.GameDTO;
 import co.edu.eci.pigball.game.service.GameService;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @RestController
 public class LobbyController {
@@ -16,6 +19,12 @@ public class LobbyController {
     public LobbyController(GameService gameService) {
         this.gameService = gameService;
     }
+
+    @GetMapping("/health")
+    public boolean getMethodName(@RequestParam String param) {
+        return true;
+    }
+    
 
     @PostMapping("/createGame")
     public ResponseEntity<Object> createGame(
