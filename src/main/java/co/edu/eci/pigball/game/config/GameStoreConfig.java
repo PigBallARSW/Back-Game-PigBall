@@ -24,7 +24,7 @@ public class GameStoreConfig implements IGameStore {
     public GameStoreConfig(
             InMemoryGameStore memoryStore,
             RedisGameStore redisStore,
-            @Value("${app.store.type:memory}") String storeType
+            @Value("${APP_STORE_TYPE}") String storeType
     ) {
         this.memoryStore = memoryStore;
         this.redisStore  = redisStore;
