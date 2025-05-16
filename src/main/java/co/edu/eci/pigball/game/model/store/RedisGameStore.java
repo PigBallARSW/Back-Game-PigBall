@@ -52,7 +52,7 @@ public class RedisGameStore implements IGameStore {
         //updates.publish(dto);
 
     }
-    /** Cada 100 ms (10fps) republica TODOS los estados */
+    /** Cada 100 ms  republica TODOS los estados */
     @Scheduled(fixedRate = 100)
     public void broadcastAll() {
         for (GameDTO dto : metaMap.readAllValues()) {
