@@ -13,7 +13,7 @@ public class RedissonConfig {
     public RedissonClient redissonClient() {
         Config config = new Config();
         config.useSingleServer()
-              .setAddress("redis://clustercfg.pigball-redis.lmdnlx.us-east-1.cache.amazonaws.com:6379")
+              .setAddress("redis://172.31.39.198:6379")
               .setConnectionPoolSize(64)
               .setConnectionMinimumIdleSize(24);
         return Redisson.create(config);
