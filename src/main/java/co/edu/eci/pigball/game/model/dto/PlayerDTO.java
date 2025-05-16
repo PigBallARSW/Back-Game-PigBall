@@ -21,6 +21,7 @@ public class PlayerDTO {
     private double y;
     private boolean isKicking;
     private String id;
+    private double radius;
 
     public static PlayerDTO toDTO(Player player) {
         PlayerDTO playerDTO = new PlayerDTO();
@@ -31,6 +32,7 @@ public class PlayerDTO {
         playerDTO.setY(player.getY());
         playerDTO.setKicking(player.isKicking());
         playerDTO.setId(player.getId());
+        playerDTO.setRadius(player.getRadius());
         return playerDTO;
     }
 
