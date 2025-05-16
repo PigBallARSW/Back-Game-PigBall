@@ -24,9 +24,7 @@ public class GameApplication {
 				
 				// Only set the system property if it is not already set
 				logger.info("Setting system property: {}={}", key, entry.getValue());
-				if (System.getProperty(key) == null && System.getenv(key) == null) {
-					System.setProperty(key, entry.getValue());
-				}
+				System.setProperty(key, entry.getValue());
 			});
 		} catch (Exception e) {
 			// Continue without .env file
