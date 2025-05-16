@@ -367,7 +367,12 @@ public class Game implements Runnable, GameObserver {
     }
 
     @Override
-    public void onGoalScored(int team, List<Player> players) {
+    public synchronized void onGoalScored(int team, List<Player> players) {
+
+        if (players == null || players.isEmpty()) {
+            logger.warn("onGoalScored: no hay jugadores tocando la pelota, descartando evento");
+            return;
+        }
         if (team == 0) {
             teams.getFirst().increaseScore();
         } else {
