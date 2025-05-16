@@ -178,6 +178,9 @@ public class GameService {
             throw new GameException(GameException.NOT_EMPTY_ID);
         }
         Game game = localGames.remove(gameId);
+        if (game == null) {
+            throw new GameException(GameException.GAME_NOT_FOUND);
+        }
         if (game != null) {
             game.stop();
         }
@@ -199,6 +202,9 @@ public class GameService {
         return removePlayerFromGame(gameId, player.getName());
     }
     public List<Player> removePlayerFromGame(String gameId, String playerName) throws GameException {
+        if (gameId == null) {
+            throw new GameException(GameException.NOT_EMPTY_ID);
+        }
         Game game = localGames.get(gameId);
         if (game == null) {
             throw new GameException(GameException.GAME_NOT_FOUND);

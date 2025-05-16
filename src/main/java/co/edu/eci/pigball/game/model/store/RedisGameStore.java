@@ -26,6 +26,8 @@ public class RedisGameStore implements IGameStore {
 
     private final RMap<String, GameDTO> metaMap;
     private final RTopic updates;
+    // publicamos, como mucho, 20 veces por segundo
+    private static final long MIN_PUBLISH_INTERVAL_MS = 1000 / 20;
 
     public RedisGameStore(RedissonClient redisson) {
         ObjectMapper mapper = new ObjectMapper()
@@ -50,9 +52,9 @@ public class RedisGameStore implements IGameStore {
         //updates.publish(dto);
 
     }
-    /** Este método se ejecuta cada 20 000 ms y vuelve a publicar todos los DTOs */
-    @Scheduled(fixedRate = 20_000)
-    public void rebroadcastAllGames() {
+    /** Cada 100 ms (10fps) republica TODOS los estados */
+    @Scheduled(fixedRate = 100)
+    public void broadcastAll() {
         for (GameDTO dto : metaMap.readAllValues()) {
             updates.publish(dto);
         }
