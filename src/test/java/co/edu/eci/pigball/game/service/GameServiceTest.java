@@ -38,7 +38,6 @@ class GameServiceTest {
     void setUp() {
         inMemoryStore = new InMemoryGameStore();
         // forzamos que no haya RedisStore disponible:
-        when(redisProvider.getIfAvailable()).thenReturn(null);
 
         gameService = new GameService(inMemoryStore,messagingTemplate);
 
