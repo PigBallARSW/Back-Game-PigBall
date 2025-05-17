@@ -27,8 +27,6 @@ class GameServiceTest {
 
     @Mock
     private SimpMessagingTemplate messagingTemplate;
-    @Mock
-    private ObjectProvider<RedisGameStore> redisProvider;
 
     private static final double PLAYER_RADIUS = 20.0;
     private GameService gameService;
