@@ -27,17 +27,14 @@ public class GameService {
 
     private static final Logger logger = LoggerFactory.getLogger(GameService.class);
 
-    private final IGameStore store;
-    private final RedisGameStore redisStore;      // puede ser null si no hay bean
+    private final IGameStore store;    // puede ser null si no hay bean
     private final SimpMessagingTemplate messagingTemplate;
     private final Map<String, Game> localGames = new ConcurrentHashMap<>();
 
     public GameService(
             IGameStore store,
-            ObjectProvider<RedisGameStore> redisStoreProvider,
             SimpMessagingTemplate messagingTemplate) {
-        this.store = store;
-        this.redisStore = redisStoreProvider.getIfAvailable();  // null en modo memoria
+        this.store = store; // null en modo memoria
         this.messagingTemplate = messagingTemplate;
     }
 
@@ -51,18 +48,18 @@ public class GameService {
                 recoverGames();
             }
 
-            // 2) si tenemos Redis, suscribirnos al topic de updates
-            if (redisStore != null) {
-                redisStore.getUpdateTopic()
+            // 2) si el store es RedisGameStore, suscribirnos al topic de updates
+            if (store instanceof RedisGameStore) {
+                RedisGameStore redis = (RedisGameStore) store;
+                redis.getUpdateTopic()
                         .addListener(GameDTO.class, (channel, dto) -> {
                             Game g = localGames.get(dto.getId());
                             if (g == null) {
                                 startAndRegister(dto);
                             } else {
                                 GameMapper.restoreState(g, dto);
-
                             }
-                            //messagingTemplate.convertAndSend("/topic/play/"+dto.getId(), dto);
+                            // messagingTemplate.convertAndSend("/topic/play/"+dto.getId(), dto);
                         });
                 logger.info("Subscribed to Redis updates topic");
             }

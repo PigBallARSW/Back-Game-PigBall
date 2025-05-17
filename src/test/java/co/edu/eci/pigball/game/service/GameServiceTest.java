@@ -40,10 +40,10 @@ class GameServiceTest {
         // forzamos que no haya RedisStore disponible:
         when(redisProvider.getIfAvailable()).thenReturn(null);
 
-        gameService = new GameService(inMemoryStore, redisProvider, messagingTemplate);
+        gameService = new GameService(inMemoryStore,messagingTemplate);
 
         // 3) construimos GameService con la inMemoryStore y el provider nulo:
-        gameService = new GameService(inMemoryStore, redisProvider, messagingTemplate);
+        gameService = new GameService(inMemoryStore, messagingTemplate);
         gameDTO = new GameDTO();
         gameDTO.setGameName("Test Game");
         gameDTO.setCreatorName("Test Creator");
