@@ -31,6 +31,7 @@ public class GameDTO {
     private BallDTO ball;
     private List<Pair<String,Event>> events;
     private Pair<Integer, Integer> teams;
+    private String style;
 
     public int getMaxPlayers() {
         if (maxPlayers == null)

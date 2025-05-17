@@ -9,6 +9,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import lombok.Setter;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
@@ -23,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Getter
+@Setter
 public class Game implements Runnable, GameObserver {
 
     private static final Logger logger = LoggerFactory.getLogger(Game.class);
@@ -43,6 +45,7 @@ public class Game implements Runnable, GameObserver {
     private ConcurrentHashMap<String, Player> players;
     private List<Pair<String,Event>> events;
     private Ball ball;
+    private String style;
 
     private static final int VELOCITY = 2;
     private static final double FRAME_RATE = 60;
@@ -51,7 +54,7 @@ public class Game implements Runnable, GameObserver {
     public static final int GAME_TIME = 300; //5 min
     public static final int GAME_ABANDONED_TIME = 900; //15 min
 
-    public Game(String gameName, String creatorName, int maxPlayers, boolean privateGame,
+    public Game(String gameName, String creatorName, int maxPlayers, boolean privateGame, String style, 
             SimpMessagingTemplate messagingTemplate) {
         this.gameId = UUID.randomUUID().toString();
         this.gameName = gameName;
@@ -70,6 +73,8 @@ public class Game implements Runnable, GameObserver {
         this.players = new ConcurrentHashMap<>();
         this.ball = new Ball(this.borderX / 2, this.borderY / 2, 0, 0, 10.0);
         this.ball.addObserver(this);
+        this.style = style;
+        this.style = style;
     }
 
     public void setIdForTest(String id) {
@@ -223,7 +228,7 @@ public class Game implements Runnable, GameObserver {
         } else{
             teams.getSecond().removePlayer();
         }
-        if (players.size() == 0 && (GameStatus.FINISHED != status || GameStatus.WAITING_FOR_PLAYERS != status)) {
+        if (players.size() <= 1 && (GameStatus.FINISHED != status || GameStatus.WAITING_FOR_PLAYERS != status)) {
             status = GameStatus.ABANDONED;
         } else if (status == GameStatus.WAITING_FULL) {
             status = GameStatus.WAITING_FOR_PLAYERS;
@@ -237,7 +242,9 @@ public class Game implements Runnable, GameObserver {
     }
 
     public GameDTO startGame() throws GameException {
-
+        if (status != GameStatus.WAITING_FOR_PLAYERS && status != GameStatus.WAITING_FULL) {
+            throw new GameException(GameException.GAME_ALREADY_STARTED);
+        }
         status = GameStatus.STARTING;
         ubicatePlayersAndBallInTheField();
         try {
@@ -277,10 +284,12 @@ public class Game implements Runnable, GameObserver {
             double baseY = 3 * player.getRadius();
             double x = ubicatedPlayersTeamOne % 2 == 0 ? baseX : baseX + (3 * player.getRadius());
             double y = 0;
-            if (maxPlayers == 2) {
+            int actualPlayersOnTeam = teams.getFirst().getPlayers();
+            if (actualPlayersOnTeam == 1) {
                 y = borderY / 2.0;
             } else {
-                y = (((borderY - (2.0 * baseY)) / ((maxPlayers / 2.0) - 1.0)) * ubicatedPlayersTeamOne) + baseY;
+                
+                y = (((borderY - (2.0 * baseY)) / (actualPlayersOnTeam - 1.0)) * ubicatedPlayersTeamOne) + baseY;
             }
             logger.info("Player team 0: {} set to position {}, {}", player.getName(), x, y);
             return new Pair<>(x, y);
@@ -289,10 +298,11 @@ public class Game implements Runnable, GameObserver {
             double baseY = 3 * player.getRadius();
             double x = ubicatedPlayersTeamTwo % 2 == 0 ? baseX : baseX - (3 * player.getRadius());
             double y = 0;
-            if (maxPlayers == 2) {
+            int actualPlayersOnTeam = teams.getSecond().getPlayers();
+            if (actualPlayersOnTeam == 1) {
                 y = borderY / 2.0;
             } else {
-                y = (((borderY - (2.0 * baseY)) / ((maxPlayers / 2.0) - 1.0)) * ubicatedPlayersTeamTwo) + baseY;
+                y = (((borderY - (2.0 * baseY)) / (actualPlayersOnTeam - 1.0)) * ubicatedPlayersTeamTwo) + baseY;
             }
             logger.info("Player team 1: {} set to position {}, {}", player.getName(), x, y);
             return new Pair<>(x, y);
@@ -363,7 +373,12 @@ public class Game implements Runnable, GameObserver {
     }
 
     @Override
-    public void onGoalScored(int team, List<Player> players) {
+    public synchronized void onGoalScored(int team, List<Player> players) {
+
+        if (players == null || players.isEmpty()) {
+            logger.warn("onGoalScored: no hay jugadores tocando la pelota, descartando evento");
+            return;
+        }
         if (team == 0) {
             teams.getFirst().increaseScore();
         } else {

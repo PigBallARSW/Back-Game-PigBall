@@ -35,7 +35,7 @@ class GameTest {
 
     @BeforeEach
     void setUp() {
-        game = new Game("Juego1", "Creador1", 4, false, messagingTemplate);
+        game = new Game("Juego1", "Creador1", 4, false, "classic", messagingTemplate);
 
         player1 = new Player("player1", "123",null, 0, 0, PLAYER_RADIUS);
         player2 = new Player("player2", "123",null, 0, 0, PLAYER_RADIUS);
