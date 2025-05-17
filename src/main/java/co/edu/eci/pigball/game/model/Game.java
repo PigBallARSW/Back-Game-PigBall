@@ -9,6 +9,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import lombok.Setter;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
@@ -23,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Getter
+@Setter
 public class Game implements Runnable, GameObserver {
 
     private static final Logger logger = LoggerFactory.getLogger(Game.class);
@@ -52,8 +54,8 @@ public class Game implements Runnable, GameObserver {
     public static final int GAME_TIME = 300; //5 min
     public static final int GAME_ABANDONED_TIME = 900; //15 min
 
-    public Game(String gameName, String creatorName, int maxPlayers, boolean privateGame,
-            SimpMessagingTemplate messagingTemplate, String style) {
+    public Game(String gameName, String creatorName, int maxPlayers, boolean privateGame, String style, 
+            SimpMessagingTemplate messagingTemplate) {
         this.gameId = UUID.randomUUID().toString();
         this.gameName = gameName;
         this.creatorName = creatorName;
@@ -71,6 +73,7 @@ public class Game implements Runnable, GameObserver {
         this.players = new ConcurrentHashMap<>();
         this.ball = new Ball(this.borderX / 2, this.borderY / 2, 0, 0, 10.0);
         this.ball.addObserver(this);
+        this.style = style;
         this.style = style;
     }
 
@@ -370,7 +373,12 @@ public class Game implements Runnable, GameObserver {
     }
 
     @Override
-    public void onGoalScored(int team, List<Player> players) {
+    public synchronized void onGoalScored(int team, List<Player> players) {
+
+        if (players == null || players.isEmpty()) {
+            logger.warn("onGoalScored: no hay jugadores tocando la pelota, descartando evento");
+            return;
+        }
         if (team == 0) {
             teams.getFirst().increaseScore();
         } else {

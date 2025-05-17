@@ -92,7 +92,7 @@ public class GameController {
             gameService.makeMoveInGame(gameId, movement);
         } catch (GameException e) {
             // logger.error(e.getMessage());
-            // Don't throw or log anything here, just ignore the error
+            // Don't log, it consumes a lot of resources
         }
     }
 }
