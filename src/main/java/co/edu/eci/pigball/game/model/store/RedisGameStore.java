@@ -14,6 +14,7 @@ import org.redisson.api.RedissonClient;
 import org.redisson.client.codec.Codec;
 import org.redisson.codec.JsonJacksonCodec;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -21,7 +22,7 @@ import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.model.Game;
 
 @Component
-//@ConditionalOnBean(RedissonClient.class)
+@ConditionalOnProperty(name = "app.store.type", havingValue = "redis")
 public class RedisGameStore implements IGameStore {
 
     private final RMap<String, GameDTO> metaMap;
