@@ -23,7 +23,7 @@ public class GameStoreConfig implements IGameStore {
     public GameStoreConfig(
             InMemoryGameStore memoryStore,
             @Autowired(required = false) RedisGameStore redisStore,
-            @Value("${app.store.type}") String storeType
+            @Value("${app.store.type:memory}") String storeType
     ) {
         if ("redis".equalsIgnoreCase(storeType) && redisStore != null) {
             this.delegate = redisStore;
