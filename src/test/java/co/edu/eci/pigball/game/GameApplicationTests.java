@@ -13,7 +13,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @TestPropertySource(properties = {
 		"ALLOWED_ORIGINS_HTTP=http://test:3000,http://test.example.com",
 		"ALLOWED_ORIGINS_HTTPS=https://test:3000,https://test.example.com",
-		"SSL_ENABLED=false"
+		"SSL_ENABLED=false",
+		"REDIS_PORT=6379"
 })
 class GameApplicationTests {
 
