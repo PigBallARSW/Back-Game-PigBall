@@ -5,17 +5,17 @@ import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
 @Configuration
 public class RedissonConfig {
 
-    @Bean(destroyMethod = "shutdown")
+    @Bean(destroyMethod="shutdown")
     public RedissonClient redissonClient() {
         Config config = new Config();
-        config.useSingleServer()
-              .setAddress("redis://172.31.39.198:6379")
-              .setConnectionPoolSize(64)
-              .setConnectionMinimumIdleSize(24);
+        config.useClusterServers()
+            .addNodeAddress("redis://clustercfg.pigball-redis.lmdnlx.use1.cache.amazonaws.com:6379")
+            // Si usas contraseña:
+            //.setPassword("tu_contraseña")
+            ;
         return Redisson.create(config);
     }
 }
