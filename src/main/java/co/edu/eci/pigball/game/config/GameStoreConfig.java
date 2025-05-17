@@ -9,8 +9,10 @@ import co.edu.eci.pigball.game.model.dto.GameDTO;
 import co.edu.eci.pigball.game.model.store.IGameStore;
 import co.edu.eci.pigball.game.model.store.InMemoryGameStore;
 import co.edu.eci.pigball.game.model.store.RedisGameStore;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -24,31 +26,30 @@ import org.springframework.stereotype.Component;
 public class GameStoreConfig {
 
     private final InMemoryGameStore memoryStore;
-    private final RedisGameStore redisStore;
     private final String storeType;
 
-    @Autowired
     public GameStoreConfig(
             InMemoryGameStore memoryStore,
-            @Autowired(required = false) RedisGameStore redisStore,
             @Value("${app.store.type:memory}") String storeType
     ) {
         this.memoryStore = memoryStore;
-        this.redisStore = redisStore;
         this.storeType = storeType;
     }
 
-    /**
-     * Bean primario de IGameStore: delega a Redis si está configurado,
-     * o a memoria en cualquier otro caso.
-     */
+    /** Solo se crea este bean si app.store.type=redis */
+    @Bean
+    @ConditionalOnProperty(name = "app.store.type", havingValue = "redis")
+    public RedisGameStore redisGameStore(RedissonClient redisson) {
+        return new RedisGameStore(redisson);
+    }
+
+    /** Bean primario de IGameStore: Redis (si existe) o memoria */
     @Bean
     @Primary
-    public IGameStore gameStore() {
-        if ("redis".equalsIgnoreCase(storeType) && redisStore != null) {
-            return redisStore;
-        }
-        return memoryStore;
+    public IGameStore gameStore(
+            @Autowired(required = false) RedisGameStore redisStore
+    ) {
+        return (redisStore != null) ? redisStore : memoryStore;
     }
 }
 
