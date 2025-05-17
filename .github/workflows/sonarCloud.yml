@@ -7,7 +7,7 @@
 
   jobs:
     sonarcloud:
-      uses: PigBallARSW/central-pipelines/.github/workflows/sonarcloud-analysis.yml@V0.1.1
+      uses: PigBallARSW/central-pipelines/.github/workflows/sonarcloud-analysis.yml@V0.3.2
       with:
         java-version: '21'
         branch-name: 'main'
