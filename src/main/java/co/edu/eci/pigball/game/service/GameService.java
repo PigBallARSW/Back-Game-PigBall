@@ -79,6 +79,7 @@ public class GameService {
                     "Creator " + i,
                     20,
                     false,
+                    "normal",
                     messagingTemplate
             );
             game.setIdForTest(String.valueOf(i));
@@ -106,6 +107,7 @@ public class GameService {
                 dto.getCreatorName(),
                 dto.getMaxPlayers(),
                 dto.isPrivateGame(),
+                dto.getStyle(),
                 messagingTemplate
         );
         game.setIdForTest(dto.getId());
@@ -123,6 +125,7 @@ public class GameService {
                 dto.getCreatorName(),
                 dto.getMaxPlayers(),
                 dto.isPrivateGame(),
+                dto.getStyle(),
                 messagingTemplate
         );
         String id = game.getGameId();
@@ -145,7 +148,7 @@ public class GameService {
         if (game == null) {
             // Si no la hemos cargado en memoria, leemos el DTO y la reconstruimos
             GameDTO dto = store.findMeta(gameId);
-            game = new Game(dto.getGameName(), dto.getCreatorName(), dto.getMaxPlayers(), dto.isPrivateGame(), messagingTemplate);
+            game = new Game(dto.getGameName(), dto.getCreatorName(), dto.getMaxPlayers(), dto.isPrivateGame(), dto.getStyle(), messagingTemplate);
             GameMapper.restoreState(game, dto);
             game.start();
             localGames.put(gameId, game);
@@ -161,6 +164,7 @@ public class GameService {
                         dto.getCreatorName(),
                         dto.getMaxPlayers(),
                         dto.isPrivateGame(),
+                        dto.getStyle(),
                         messagingTemplate
                 );
                 GameMapper.restoreState(g, dto);

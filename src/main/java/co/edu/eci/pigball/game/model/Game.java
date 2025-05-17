@@ -45,6 +45,7 @@ public class Game implements Runnable, GameObserver {
     private ConcurrentHashMap<String, Player> players;
     private List<Pair<String,Event>> events;
     private Ball ball;
+    private String style;
 
     private static final int VELOCITY = 2;
     private static final double FRAME_RATE = 60;
@@ -53,7 +54,7 @@ public class Game implements Runnable, GameObserver {
     public static final int GAME_TIME = 300; //5 min
     public static final int GAME_ABANDONED_TIME = 900; //15 min
 
-    public Game(String gameName, String creatorName, int maxPlayers, boolean privateGame,
+    public Game(String gameName, String creatorName, int maxPlayers, boolean privateGame, String string, 
             SimpMessagingTemplate messagingTemplate) {
         this.gameId = UUID.randomUUID().toString();
         this.gameName = gameName;
