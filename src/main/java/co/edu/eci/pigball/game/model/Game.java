@@ -43,6 +43,7 @@ public class Game implements Runnable, GameObserver {
     private ConcurrentHashMap<String, Player> players;
     private List<Pair<String,Event>> events;
     private Ball ball;
+    private String style;
 
     private static final int VELOCITY = 2;
     private static final double FRAME_RATE = 60;
@@ -52,7 +53,7 @@ public class Game implements Runnable, GameObserver {
     public static final int GAME_ABANDONED_TIME = 900; //15 min
 
     public Game(String gameName, String creatorName, int maxPlayers, boolean privateGame,
-            SimpMessagingTemplate messagingTemplate) {
+            SimpMessagingTemplate messagingTemplate, String style) {
         this.gameId = UUID.randomUUID().toString();
         this.gameName = gameName;
         this.creatorName = creatorName;
@@ -70,6 +71,7 @@ public class Game implements Runnable, GameObserver {
         this.players = new ConcurrentHashMap<>();
         this.ball = new Ball(this.borderX / 2, this.borderY / 2, 0, 0, 10.0);
         this.ball.addObserver(this);
+        this.style = style;
     }
 
     public void setIdForTest(String id) {
@@ -223,7 +225,7 @@ public class Game implements Runnable, GameObserver {
         } else{
             teams.getSecond().removePlayer();
         }
-        if (players.size() == 0 && (GameStatus.FINISHED != status || GameStatus.WAITING_FOR_PLAYERS != status)) {
+        if (players.size() <= 1 && (GameStatus.FINISHED != status || GameStatus.WAITING_FOR_PLAYERS != status)) {
             status = GameStatus.ABANDONED;
         } else if (status == GameStatus.WAITING_FULL) {
             status = GameStatus.WAITING_FOR_PLAYERS;
@@ -279,10 +281,12 @@ public class Game implements Runnable, GameObserver {
             double baseY = 3 * player.getRadius();
             double x = ubicatedPlayersTeamOne % 2 == 0 ? baseX : baseX + (3 * player.getRadius());
             double y = 0;
-            if (maxPlayers == 2) {
+            int actualPlayersOnTeam = teams.getFirst().getPlayers();
+            if (actualPlayersOnTeam == 1) {
                 y = borderY / 2.0;
             } else {
-                y = (((borderY - (2.0 * baseY)) / ((maxPlayers / 2.0) - 1.0)) * ubicatedPlayersTeamOne) + baseY;
+                
+                y = (((borderY - (2.0 * baseY)) / (actualPlayersOnTeam - 1.0)) * ubicatedPlayersTeamOne) + baseY;
             }
             logger.info("Player team 0: {} set to position {}, {}", player.getName(), x, y);
             return new Pair<>(x, y);
@@ -291,10 +295,11 @@ public class Game implements Runnable, GameObserver {
             double baseY = 3 * player.getRadius();
             double x = ubicatedPlayersTeamTwo % 2 == 0 ? baseX : baseX - (3 * player.getRadius());
             double y = 0;
-            if (maxPlayers == 2) {
+            int actualPlayersOnTeam = teams.getSecond().getPlayers();
+            if (actualPlayersOnTeam == 1) {
                 y = borderY / 2.0;
             } else {
-                y = (((borderY - (2.0 * baseY)) / ((maxPlayers / 2.0) - 1.0)) * ubicatedPlayersTeamTwo) + baseY;
+                y = (((borderY - (2.0 * baseY)) / (actualPlayersOnTeam - 1.0)) * ubicatedPlayersTeamTwo) + baseY;
             }
             logger.info("Player team 1: {} set to position {}, {}", player.getName(), x, y);
             return new Pair<>(x, y);

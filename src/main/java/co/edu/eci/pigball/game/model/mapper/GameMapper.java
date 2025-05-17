@@ -23,7 +23,7 @@ public class GameMapper {
         return new GameDTO(game.getGameId(), game.getGameName(), 
                 game.getCreatorName(), game.getMaxPlayers(), game.getStatus(),
                 game.isPrivateGame(), game.getCreationTime(), game.getStartTime(), game.getBorderX(), game.getBorderY(),
-                playersDTO, ballDTO, game.getEvents() ,teams );
+                playersDTO, ballDTO, game.getEvents() ,teams , game.getStyle());
     }
 
     public static Collection<GameDTO> toDTO(Collection<Game> games) {
