@@ -79,7 +79,7 @@ public class GameService {
                     "Creator " + i,
                     20,
                     false,
-                    "normal",
+                    "classic",
                     messagingTemplate
             );
             game.setIdForTest(String.valueOf(i));
