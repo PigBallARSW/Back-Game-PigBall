@@ -68,10 +68,10 @@ public class GameService {
     }
 
     private void seedTestGames() {
-        for (int i = 1; i <= 5; i++) {
+        for (int i = 1; i <= 2; i++) {
             Game game = new Game(
                     "Game " + i,
-                    "Creator " + i,
+                    "Mateo",
                     20,
                     false,
                     "classic",
