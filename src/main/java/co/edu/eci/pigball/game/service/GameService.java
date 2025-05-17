@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import co.edu.eci.pigball.game.model.store.IGameStore;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
@@ -32,7 +33,7 @@ public class GameService {
     private final Map<String, Game> localGames = new ConcurrentHashMap<>();
 
     public GameService(
-            IGameStore store,
+            @Qualifier("${app.store.type}GameStore") IGameStore store,
             SimpMessagingTemplate messagingTemplate) {
         this.store = store; // null en modo memoria
         this.messagingTemplate = messagingTemplate;

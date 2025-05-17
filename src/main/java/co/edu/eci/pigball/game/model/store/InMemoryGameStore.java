@@ -6,12 +6,18 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import co.edu.eci.pigball.game.model.dto.GameDTO;
 import co.edu.eci.pigball.game.model.mapper.GameMapper;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.model.Game;
 
-@Component
+@Component("memoryGameStore")
+@ConditionalOnProperty(
+        name = "app.store.type",
+        havingValue = "memory",
+        matchIfMissing = true    // crea este bean también si no hay propiedad
+)
 public class InMemoryGameStore implements IGameStore {
 
     // Ahora guardamos DTOs planos
