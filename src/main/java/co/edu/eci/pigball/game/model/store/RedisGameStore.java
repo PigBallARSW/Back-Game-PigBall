@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.model.Game;
 
-@Component
+//@Component
 @ConditionalOnProperty(name = "app.store.type", havingValue = "redis")
 public class RedisGameStore implements IGameStore {
 
