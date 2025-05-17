@@ -12,12 +12,12 @@ import org.springframework.stereotype.Component;
 import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.model.Game;
 
-@Component("memoryGameStore")
-@ConditionalOnProperty(
-        name = "app.store.type",
-        havingValue = "memory",
-        matchIfMissing = true    // crea este bean también si no hay propiedad
-)
+//@Component("memoryGameStore")
+//@ConditionalOnProperty(
+//        name = "app.store.type",
+//        havingValue = "memory",
+//        matchIfMissing = true    // crea este bean también si no hay propiedad
+//)
 public class InMemoryGameStore implements IGameStore {
 
     // Ahora guardamos DTOs planos

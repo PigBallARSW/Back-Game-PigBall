@@ -21,11 +21,11 @@ import org.springframework.stereotype.Component;
 import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.model.Game;
 
-@Component("redisGameStore")
-@ConditionalOnProperty(
-        name = "app.store.type",
-        havingValue = "redis"
-)
+//@Component("redisGameStore")
+//@ConditionalOnProperty(
+//        name = "app.store.type",
+//        havingValue = "redis"
+//)
 public class RedisGameStore implements IGameStore {
 
     private final RMap<String, GameDTO> metaMap;

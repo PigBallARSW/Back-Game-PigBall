@@ -32,12 +32,11 @@ public class GameService {
     private final SimpMessagingTemplate messagingTemplate;
     private final Map<String, Game> localGames = new ConcurrentHashMap<>();
 
-    public GameService(
-            @Qualifier("${app.store.type}GameStore") IGameStore store,
-            SimpMessagingTemplate messagingTemplate) {
-        this.store = store; // null en modo memoria
+    public GameService(IGameStore store, SimpMessagingTemplate messagingTemplate) {
+        this.store = store;
         this.messagingTemplate = messagingTemplate;
     }
+
 
     @PostConstruct
     public void init() {
