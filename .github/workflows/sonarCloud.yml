@@ -54,7 +54,7 @@ jobs:
       # Opcional: exporta las vars para que tu app use este Redis
       - name: Export Redis env
         run: |
-          echo "REDIS_HOST=localhost" >> $GITHUB_ENV
+          echo "REDIS_HOST=redis" >> $GITHUB_ENV
           echo "REDIS_PORT=6379" >> $GITHUB_ENV
           echo "APP_STORE_TYPE=memory" >> $GITHUB_ENV
 
