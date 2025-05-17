@@ -7,8 +7,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import co.edu.eci.pigball.game.model.store.IGameStore;
+import co.edu.eci.pigball.game.model.store.InMemoryGameStore;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
@@ -32,12 +34,22 @@ public class GameService {
     private final SimpMessagingTemplate messagingTemplate;
     private final Map<String, Game> localGames = new ConcurrentHashMap<>();
 
+    @Autowired
     public GameService(
             IGameStore store,
             ObjectProvider<RedisGameStore> redisStoreProvider,
+            SimpMessagingTemplate messagingTemplate
+    ) {
+        this.store = store;
+        this.redisStore = redisStoreProvider.getIfAvailable();  // null si no hay bean de RedisGameStore
+        this.messagingTemplate = messagingTemplate;
+    }
+
+    public GameService(
+            InMemoryGameStore store,
             SimpMessagingTemplate messagingTemplate) {
         this.store = store;
-        this.redisStore = redisStoreProvider.getIfAvailable();  // null en modo memoria
+        this.redisStore = null;
         this.messagingTemplate = messagingTemplate;
     }
 

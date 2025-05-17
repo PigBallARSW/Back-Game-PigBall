@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 import java.util.Collection;
 import java.util.List;
 
+import co.edu.eci.pigball.game.GameApplication;
 import co.edu.eci.pigball.game.model.store.InMemoryGameStore;
 import co.edu.eci.pigball.game.model.store.RedisGameStore;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,7 +14,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.redisson.spring.starter.RedissonAutoConfigurationV2;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import co.edu.eci.pigball.game.exception.GameException;
@@ -21,7 +24,6 @@ import co.edu.eci.pigball.game.model.Movement;
 import co.edu.eci.pigball.game.model.dto.GameDTO;
 import co.edu.eci.pigball.game.model.dto.PlayerDTO;
 import co.edu.eci.pigball.game.model.entity.impl.Player;
-
 @ExtendWith(MockitoExtension.class)
 class GameServiceTest {
 
@@ -38,12 +40,8 @@ class GameServiceTest {
     void setUp() {
         inMemoryStore = new InMemoryGameStore();
         // forzamos que no haya RedisStore disponible:
-        when(redisProvider.getIfAvailable()).thenReturn(null);
-
-        gameService = new GameService(inMemoryStore, redisProvider, messagingTemplate);
-
         // 3) construimos GameService con la inMemoryStore y el provider nulo:
-        gameService = new GameService(inMemoryStore, redisProvider, messagingTemplate);
+        gameService = new GameService(inMemoryStore, messagingTemplate);
         gameDTO = new GameDTO();
         gameDTO.setGameName("Test Game");
         gameDTO.setCreatorName("Test Creator");

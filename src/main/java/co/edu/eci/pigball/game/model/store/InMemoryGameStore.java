@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import co.edu.eci.pigball.game.exception.GameException;
 import co.edu.eci.pigball.game.model.Game;
 
-@Component
+//@Component
 public class InMemoryGameStore implements IGameStore {
 
     // Ahora guardamos DTOs planos
