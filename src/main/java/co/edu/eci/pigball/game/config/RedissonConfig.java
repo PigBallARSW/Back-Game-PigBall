@@ -8,6 +8,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RedissonConfig {
 
+    /* 
+            
+            
     @Bean(destroyMethod="shutdown")
     public RedissonClient redissonClient() {
         Config config = new Config();
@@ -17,5 +20,5 @@ public class RedissonConfig {
             //.setPassword("tu_contraseña")
             ;
         return Redisson.create(config);
-    }
+    }*/
 }
