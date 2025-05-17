@@ -5,11 +5,7 @@ import static org.junit.Assert.assertEquals;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.junit.jupiter.api.extension.ExtendWith;
-
 @SpringBootTest
-@ExtendWith(SpringExtension.class)
 @TestPropertySource(properties = {
 		"ALLOWED_ORIGINS_HTTP=http://test:3000,http://test.example.com",
 		"ALLOWED_ORIGINS_HTTPS=https://test:3000,https://test.example.com",
