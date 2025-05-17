@@ -49,7 +49,14 @@ public class GameController {
             return gameStateAfterPlayer;
         } catch (GameException e) {
             logger.error("Error al agregar el jugador al juego: {}", e.getMessage());
-            return null;
+            try {
+                GameDTO gameState = gameService.getGame(gameId);
+                return gameState;
+            } catch (GameException e1) {
+                logger.error("Error al obtener el estado del juego: {}", e1.getMessage());
+                return null;
+            }
+            
         }
     }
 

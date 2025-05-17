@@ -17,12 +17,12 @@ public class Player extends Entity {
     private int lastDy;
     private boolean lastIsKicking;
 
-    public Player(String name,String id, String sessionId, int x, int y, double radius) {
+    public Player(String name, String id, String sessionId, int x, int y, double radius) {
         super(x, y, radius);
         this.name = name;
         this.sessionId = sessionId;
         this.isKicking = false;
-        this.id=id;
+        this.id = id;
         this.lastDx = 0;
         this.lastDy = 0;
         this.lastIsKicking = false;
@@ -33,7 +33,6 @@ public class Player extends Entity {
         this.lastDy = dy;
         this.lastIsKicking = isKicking;
     }
-
 
     public void setSessionId(String sessionId) {
         this.sessionId = sessionId;
@@ -46,7 +45,6 @@ public class Player extends Entity {
     public void setIsKicking(boolean isKicking) {
         this.isKicking = isKicking;
     }
-    
 
     @Override
     public Pair<Double, Double> validateCoordinates(int borderX, int borderY, Pair<Double, Double> coordinates,
@@ -94,21 +92,31 @@ public class Player extends Entity {
         return new Pair<>(x, y);
     }
 
-    /**
-     * Verifica si la pelota se encuentra en el área de gol. Si se detecta gol,
-     * notifica el evento y retorna la posición reiniciada (centro del campo).
-     * Si no hay gol, retorna null.
-     */
     private Pair<Double, Double> handleGoalArea(double x, double y, int borderX, int borderY) {
         int middleY = borderY / 2;
-        boolean isInXRange = x - radius <= 0 || x + radius >= borderX;
-        boolean isInYRange = (y - radius + 10 > middleY - (borderY * 0.09)) && (y + radius - 10 < middleY + (borderY * 0.09));
-        boolean isInGoalArea = isInXRange && isInYRange;
-        if (isInGoalArea) {
-            x = Math.clamp(x, -10.0, borderX + 10.0);
-            y = Math.clamp(y, middleY - (borderY * 0.09) + radius, middleY + (borderY * 0.09) - radius);
+
+        double extension = borderX * 0.03;
+
+        double minY = middleY - (borderY * 0.09) + radius;
+        double maxY = middleY + (borderY * 0.09) - radius;
+
+        boolean isInXRange = (x - radius <= 0) || (x + radius >= borderX);
+
+        // Rango vertical original (igual que antes)
+        boolean isInYRange = (y - radius + 10 > middleY - (borderY * 0.09)) &&
+                (y + radius - 10 < middleY + (borderY * 0.09));
+
+        if (isInXRange && isInYRange) {
+            // Límites reales para que el círculo nunca sobrepase ese 3 %
+            double minXAllowed = -extension + radius;
+            double maxXAllowed = borderX + extension - radius;
+
+            x = Math.clamp(x, minXAllowed, maxXAllowed);
+            y = Math.clamp(y, minY, maxY);
+
             return new Pair<>(x, y);
         }
+
         return null;
     }
 
